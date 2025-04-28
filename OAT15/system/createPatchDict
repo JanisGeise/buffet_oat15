@@ -83,7 +83,7 @@ patches
         constructFrom patches;
 
         // If constructFrom = patches : names of patches. Wildcards allowed.
-        patches ("cylinder");
+        patches ("domain");
     }
 
 

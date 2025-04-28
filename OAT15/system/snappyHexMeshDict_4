@@ -37,8 +37,7 @@ castellatedMeshControls
 
     maxLocalCells 100000;
 
-    //maxGlobalCells 2000000;
-    maxGlobalCells 10000000; //about 10GB memory
+    maxGlobalCells 10000000;
 
     minRefinementCells 0;
 
@@ -66,8 +65,7 @@ castellatedMeshControls
 
     //- Optional increment (on top of max level) in small gaps
     //It is added where the distance between two surface is less than 2 cells (refined)
-    //gapLevelIncrement 2;	//use with 6 6 in TE
-    //gapLevelIncrement 4;	//use with 4 4 in TE
+    //gapLevelIncrement 2;
 
     planarAngle 30;
 
@@ -92,24 +90,20 @@ snapControls
 {
     // Number of patch smoothing iterations before finding correspondence
     // to surface
-    nSmoothPatch 3;	//recommended
+    nSmoothPatch 3;
     
 
-    tolerance 2.0;	//recommended
-    //tolerance 1.0;
+    tolerance 2.0;
 
-    nSolveIter 30;	//recommended
-    //nSolveIter 100;	//improved
+    nSolveIter 30;
 
-    nRelaxIter 5;	//recommended
-    //nRelaxIter 10;	//improved	10-20-50
+    nRelaxIter 5;
 
     // Feature snapping
 
-        nFeatureSnapIter 10;		//recommended
-        //nFeatureSnapIter 100;		//improved	50-100
+        nFeatureSnapIter 10;
 
-//For 2D
+    //For 2D
         implicitFeatureSnap true;
 
         explicitFeatureSnap false;
@@ -192,7 +186,7 @@ addLayersControls
         // When not to extrude surface. 0 is flat surface, 90 is when two faces
         // are perpendicular
 	    //mergePatchFacesAngle 45;
-        featureAngle 180;		//default
+        featureAngle 180;
 	    nOuterIter 5;
 
         // Stop layer growth on highly warped cells
@@ -209,7 +203,6 @@ addLayersControls
     // Medial axis analysis
 
         minMedialAxisAngle 90;
-        minMedianAxisAngle 90;
 	    mergePatchFacesAngle 45;
         // Reduce layer growth where ratio thickness to medial
         // distance is large

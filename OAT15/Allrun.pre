@@ -2,20 +2,29 @@
 cd "${0%/*}" || exit                                # Run from this directory
 . "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
 #------------------------------------------------------------------------------
-# define final number of layers in spanwise direction
+# define final number of layers in span-wise direction
 n_layer=30
 
-# define extrusion length in spanwise direction
+# define extrusion length in span-wise direction
 ymax=0.0735
 
-# TODO: make sure the geometry directory exists and contains the required STL files
+# define path to the OAT15 STL file
+pwd_oat="../geometry/airfoil.stl"
+
+# make sure the geometry directory exists and contains the required STL file, otherwise exit
+if [ ! -f $pwd_oat ]; then
+    echo "No STL file for the OAT15 airfoil found. Make sure to provide an STL file in '${pwd_oat}'."
+    exit 0
+fi
 
 # copy STL files from geometry to const
-mkdir constant/triSurface
-cp ../geometry/*.stl constant/triSurface/
+mkdir "constant/triSurface"
+cp $pwd_oat "constant/triSurface/"
 
 # make sure the fvOptions is not used during meshing, otherwise snappy crashes when adding BL layers
-mv system/fvOptions system/fvOptions_bak
+if [ ! -e "system/fvOptions_bak" ]; then
+    mv "system/fvOptions" "system/fvOptions_bak"
+fi
 
 # create background mesh
 runApplication blockMesh
@@ -40,7 +49,7 @@ for i in $(seq 0 3);
         runParallel extrudeMesh -noFunctionObjects
         runApplication reconstructParMesh -constant
 
-        mv log.snappyHexMesh log.snappyHexMesh_$i
+        mv log.snappyHexMesh log.snappyHexMesh_"$i"
         rm -r processor* log.decomposePar log.extrudeMesh log.reconstructParMesh
     done
 
@@ -59,8 +68,8 @@ echo "Finalizing meshing:"
 sed -i "s/^nLayers.*/nLayers         ${n_layer};/" system/extrudeMeshDict
 sed -i "s/^    thickness.*/    thickness       ${ymax};/" system/extrudeMeshDict
 
+# finalize
 runParallel extrudeMesh -noFunctionObjects
-
 runParallel createPatch -overwrite
 runParallel checkMesh -allGeometry -allTopology
 runApplication reconstructParMesh -constant

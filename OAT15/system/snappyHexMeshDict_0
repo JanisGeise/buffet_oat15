@@ -21,10 +21,12 @@ addLayers       true;
 
 geometry
 {
-    cylinder.stl
+    domain
     {
-        type triSurfaceMesh;
-        name cylinder;
+        type searchableCylinder;
+        point1 (0.0 -1 0.0);
+        point2 (0.0 1 0.0);
+	    radius 4.5;
     }
 };
 
@@ -58,7 +60,7 @@ castellatedMeshControls
 
     refinementSurfaces
     {
-        cylinder
+        domain
         {
             mode inside;
             level (0 0);
@@ -67,12 +69,11 @@ castellatedMeshControls
 
     // Feature angle:
 
-    resolveFeatureAngle 30;		//recommended
+    resolveFeatureAngle 30;
 
     //- Optional increment (on top of max level) in small gaps
     //It is added where the distance between two surface is less than 2 cells (refined)
-    //gapLevelIncrement 2;	//use with 6 6 in TE
-    //gapLevelIncrement 4;	//use with 4 4 in TE
+    //gapLevelIncrement 2;
 
     planarAngle 80;
 
@@ -97,32 +98,31 @@ snapControls
 {
     // Number of patch smoothing iterations before finding correspondence
     // to surface
-    nSmoothPatch 3;	//recommended
+    nSmoothPatch 3;
     
 
-    tolerance 1.0;	//recommended
+    tolerance 1.0;
 
-    nSolveIter 30;	//recommended
+    nSolveIter 30;
 
-    nRelaxIter 5;	//recommended
+    nRelaxIter 5;
 
     // Feature snapping
 
-        nFeatureSnapIter 10;		//recommended
+    nFeatureSnapIter 10;
 
-//For 2D
-        implicitFeatureSnap true;
+    //For 2D
+    implicitFeatureSnap true;
 
-        explicitFeatureSnap false;
+    explicitFeatureSnap false;
 
-        multiRegionFeatureSnap false;
+    multiRegionFeatureSnap false;
 }
 
 // Settings for the layer addition.
 addLayersControls
 {
     relativeSizes true;
-    //relativeSizes false;
 
     // Layer thickness specification. This can be specified in one of following
     // ways:
@@ -136,7 +136,6 @@ addLayersControls
     //       mode on a per-patch basis (only the values can be overridden)
 
         // Expansion factor for layer mesh
-        //expansionRatio 1.0;
         expansionRatio 1.0;
 
         // Wanted thickness of the layer furthest away from the wall.
@@ -166,7 +165,7 @@ addLayersControls
     //          - angle to nearest surface < slipFeatureAngle (see below)
     layers
     {
-        cylinder
+        domain
         {
             nSurfaceLayers 1;		  
         }

@@ -3,17 +3,24 @@ cd "${0%/*}" || exit                                # Run from this directory
 . "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
 #------------------------------------------------------------------------------
 
-# execute meshing TODO: check if already been meshed, e.g. when re-starting simulation from previous time step
-./Allrun.pre
+# check if already been meshed, e.g. when re-starting simulation from previous time step we need to avoid this step
+if [ ! -d "constant/polyMesh" ]; then
+    # execute meshing
+    ./Allrun.pre
+    cp -r 0.orig 0
+    mv "system/fvOptions_bak" "system/fvOptions"
+else
+  echo "Meshing already executed. To re-run the meshing step execute the Allclean script."
+fi
 
-cp -r 0.orig 0
-mv system/fvOptions_bak system/fvOptions
-
+# decompose and renumber
 runApplication decomposePar
 runParallel renumberMesh -overwrite
 
+# execute flow solver
 runParallel "$(getApplication)"
 
+# compute cell centers and volumes for post -processing
 runParallel postProcess -func "writeCellCentres" -constant -time none
 mv log.postProcess log.postProcess.writeCellCentres
 runParallel postProcess -func "writeCellVolumes" -constant -time none

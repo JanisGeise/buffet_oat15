@@ -51,8 +51,7 @@ castellatedMeshControls
 
     maxLocalCells 100000;
 
-    //maxGlobalCells 2000000;
-    maxGlobalCells 10000000; //about 10GB memory
+    maxGlobalCells 10000000;
 
     minRefinementCells 0;
 
@@ -80,12 +79,11 @@ castellatedMeshControls
 
     // Feature angle:
 
-    resolveFeatureAngle 30;		//recommended
+    resolveFeatureAngle 30;
 
     //- Optional increment (on top of max level) in small gaps
     //It is added where the distance between two surface is less than 2 cells (refined)
-    //gapLevelIncrement 2;	//use with 6 6 in TE
-    //gapLevelIncrement 4;	//use with 4 4 in TE
+    //gapLevelIncrement 2;
 
     planarAngle 30;
 
@@ -97,13 +95,13 @@ castellatedMeshControls
         fineShockBox
         {
             mode inside;   
-            levels ((1e15 1));  //1E15 4
+            levels ((1e15 1));
         }
 
         wakeBoxShort
         {
             mode inside;   
-            levels ((1e15 1));  //1E15 4
+            levels ((1e15 1));
         }
 
 	    airfoil
@@ -114,7 +112,6 @@ castellatedMeshControls
 	             (0.0012 3)
 	        );
 	    }
-
     }
 
     // Mesh selection
@@ -131,24 +128,20 @@ snapControls
 {
     // Number of patch smoothing iterations before finding correspondence
     // to surface
-    nSmoothPatch 3;	//recommended
+    nSmoothPatch 3;
     
 
-    tolerance 2.0;	//recommended
-    //tolerance 1.0;
+    tolerance 2.0;
 
-    nSolveIter 30;	//recommended
-    //nSolveIter 100;	//improved
+    nSolveIter 30;
 
-    nRelaxIter 5;	//recommended
-    //nRelaxIter 10;	//improved	10-20-50
+    nRelaxIter 5;
 
     // Feature snapping
 
-        nFeatureSnapIter 10;		//recommended
-        //nFeatureSnapIter 100;		//improved	50-100
+        nFeatureSnapIter 10;
 
-//For 2D
+    //For 2D
         implicitFeatureSnap true;
 
         explicitFeatureSnap false;
@@ -160,7 +153,6 @@ snapControls
 addLayersControls
 {
     relativeSizes true;
-    //relativeSizes false;
 
     // Layer thickness specification. This can be specified in one of following
     // ways:
@@ -174,20 +166,17 @@ addLayersControls
     //       mode on a per-patch basis (only the values can be overridden)
 
         // Expansion factor for layer mesh
-        //expansionRatio 1.0;
-        expansionRatio 1.2;
+        expansionRatio 1.0;
 
         // Wanted thickness of the layer furthest away from the wall.
         // If relativeSizes this is relative to undistorted size of cell
         // outside layer.
         //finalLayerThickness 1;
-        //finalLayerThickness 0.5;	//relative sizes true
 
         // Wanted thickness of the layer next to the wall.
         // If relativeSizes this is relative to undistorted size of cell
         // outside layer.
         firstLayerThickness 0.5;
-	//firstLayerThickness 0.002;	//reltive sizes false
 
         // Wanted overall thickness of layers.
         // If relativeSizes this is relative to undistorted size of cell
@@ -198,9 +187,6 @@ addLayersControls
     // cannot be above minThickness do not add layer.
     // If relativeSizes this is relative to undistorted size of cell
     // outside layer..
-    //minThickness 0.25;
-    //minThickness 0.1;
-    //minThickness 0.05;
     minThickness 0.00001;
 
     // Per final patch (so not geometry!) the layer information
@@ -225,7 +211,7 @@ addLayersControls
         // When not to extrude surface. 0 is flat surface, 90 is when two faces
         // are perpendicular
 
-        featureAngle 160;		//default
+        featureAngle 130;
 
 
         // Stop layer growth on highly warped cells
@@ -242,7 +228,6 @@ addLayersControls
     // Medial axis analysis
 
         minMedialAxisAngle 90;
-        minMedianAxisAngle 90;
 
         // Reduce layer growth where ratio thickness to medial
         // distance is large
