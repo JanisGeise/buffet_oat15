@@ -1,0 +1,75 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
+#------------------------------------------------------------------------------
+# define final number of layers in spanwise direction
+n_layer=30
+
+# define extrusion length in spanwise direction
+ymax=0.0735
+
+# TODO: make sure the geometry directory exists and contains the required STL files
+
+# copy STL files from geometry to const
+mkdir constant/triSurface
+cp ../geometry/*.stl constant/triSurface/
+
+# make sure the fvOptions is not used during meshing, otherwise snappy crashes when adding BL layers
+mv system/fvOptions system/fvOptions_bak
+
+# create background mesh
+runApplication blockMesh
+
+# extract edges from STL files
+runApplication surfaceFeatureExtract
+
+# make sure we only extrude single layer while building the grid
+sed -i "s/^nLayers.*/nLayers         1;/" system/extrudeMeshDict
+
+# restrict the extrusion length so it doesn't cause issues when creating the mesh
+# (for some reason the STL files seem to be broke for ymax > 0.045)
+sed -i "s/^    thickness.*/    thickness       0.0375;/" system/extrudeMeshDict
+
+# ----------------------------------- create mesh from different snappy dicts to avoid issues -----------------------------------
+for i in $(seq 0 3);
+    do
+        echo ""
+        echo "Starting meshing iteration ${i}/3:"
+        runApplication decomposePar
+        runParallel snappyHexMesh -dict system/snappyHexMeshDict_$i -overwrite
+        runParallel extrudeMesh -noFunctionObjects
+        runApplication reconstructParMesh -constant
+
+        mv log.snappyHexMesh log.snappyHexMesh_$i
+        rm -r processor* log.decomposePar log.extrudeMesh log.reconstructParMesh
+    done
+
+# ----------------------------------- create BL cells and extrude with target number of cells -----------------------------------
+echo ""
+echo "Creating BL cells:"
+runApplication decomposePar
+
+runParallel snappyHexMesh -dict system/snappyHexMeshDict_4 -overwrite
+mv log.snappyHexMesh log.snappyHexMesh_4
+
+echo ""
+echo "Finalizing meshing:"
+
+# replace nLayers and extrusion length with target number of layers and extrude the mesh one final time
+sed -i "s/^nLayers.*/nLayers         ${n_layer};/" system/extrudeMeshDict
+sed -i "s/^    thickness.*/    thickness       ${ymax};/" system/extrudeMeshDict
+
+runParallel extrudeMesh -noFunctionObjects
+
+runParallel createPatch -overwrite
+runParallel checkMesh -allGeometry -allTopology
+runApplication reconstructParMesh -constant
+
+# clean up
+rm -r processor* log.decomposePar
+touch post.foam
+echo ""
+echo "Finished meshing."
+echo ""
+
+

@@ -1,0 +1,21 @@
+#!/bin/bash
+cd "${0%/*}" || exit                                # Run from this directory
+. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# execute meshing TODO: check if already been meshed, e.g. when re-starting simulation from previous time step
+./Allrun.pre
+
+cp -r 0.orig 0
+mv system/fvOptions_bak system/fvOptions
+
+runApplication decomposePar
+runParallel renumberMesh -overwrite
+
+runParallel "$(getApplication)"
+
+runParallel postProcess -func "writeCellCentres" -constant -time none
+mv log.postProcess log.postProcess.writeCellCentres
+runParallel postProcess -func "writeCellVolumes" -constant -time none
+mv log.postProcess log.postProcess.writeCellVolumes
+
