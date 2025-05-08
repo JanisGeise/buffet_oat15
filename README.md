@@ -3,7 +3,6 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 ## TODO
 
-- verify setup against reference data
 - influence spanwise extrusion
 - grid convergence study
 - extend post-processing scripts for analysis of cp-distributions etc.
@@ -15,9 +14,7 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 - include pitching for DMDc analysis
 
 ## Setup
-
-- cylinder geometry required for meshing can be created using the *create_cylinder_stl_file.py*
-- the STL file for the OAT15 airfoil has to be located in the same directory (*geometry*) in the
+- the STL file for the OAT15 airfoil has to be located in a directory (*geometry*) in the
 top-level of the repository
 
 - the simulation setup is located in the directory `OAT15`

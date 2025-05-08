@@ -52,8 +52,6 @@ maxDeltaT       1e-6;
 
 functions
 {
-    // TODO: FO column avg. adden
-
     pressure
     {
         type            pressure;
@@ -102,7 +100,7 @@ functions
         rhoInf      0.957837;
         magUInf     238.845;
         lRef        0.15;
-        Aref        0.011507;   // for ymax = 0.0375 based on paraview
+        Aref        0.011025;   // projected area of the airfoil
     }
 
     Mach
@@ -121,7 +119,6 @@ functions
     {
         type            DESModelRegions;
         libs            (fieldFunctionObjects);
-        writeFields     false;                  // has no effect here -> maybe other arg
         result          DESField;
         log             true;
         executeControl  writeTime;
@@ -176,6 +173,20 @@ functions
         writeInterval   1;
     }
 
+    columnAverage
+    {
+        type            columnAverage;
+        libs            (fieldFunctionObjects);
+        patches         (airfoil)
+        fields          (total(p)_coeff yPlus p rho T wallShearStress);
+        timeStart       0;
+        timeEnd         1000;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
     fieldAverage
         {
             type             fieldAverage;
@@ -183,7 +194,7 @@ functions
             executeControl   timeStep;
             executeInterval  1;
             writeControl     writeTime;
-            writeInterval    10;
+            writeInterval    1;
             startTime        4e-3;
 
             fields

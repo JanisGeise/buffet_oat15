@@ -30,7 +30,7 @@ geometry
     wakeBox
     {
         type searchableBox;
-        min (-0.01 -1 -0.03);
+        min (-0.01 -1 -0.055);
         max (1.5  1 0.15);
     }
 };
