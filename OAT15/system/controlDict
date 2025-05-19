@@ -22,7 +22,7 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         4e-3;
+endTime         0.063;
 
 deltaT          5e-7;
 
@@ -100,7 +100,7 @@ functions
         rhoInf      0.957837;
         magUInf     238.845;
         lRef        0.15;
-        Aref        0.011025;   // projected area of the airfoil
+        Aref        0.004725;   // projected area of the airfoil
     }
 
     Mach
@@ -144,6 +144,7 @@ functions
         type            surfaces;
         libs            (sampling);
         writeControl    writeTime;
+        timeStart       3e-3;
 
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
@@ -173,47 +174,36 @@ functions
         writeInterval   1;
     }
 
-    columnAverage
+    fieldAverage
     {
-        type            columnAverage;
-        libs            (fieldFunctionObjects);
-        patches         (airfoil)
-        fields          (total(p)_coeff yPlus p rho T wallShearStress);
-        timeStart       0;
-        timeEnd         1000;
-        executeControl  writeTime;
-        executeInterval 1;
-        writeControl    writeTime;
-        writeInterval   1;
+        type             fieldAverage;
+        libs             (fieldFunctionObjects);
+        executeControl   timeStep;
+        executeInterval  1;
+        writeControl     writeTime;
+        writeInterval    1;
+        timeStart        4e-3;
+
+        fields
+        (
+            U
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+
+            p
+            {
+                mean        on;
+                prime2Mean  on;
+                base        time;
+            }
+        );
     }
 
-    fieldAverage
-        {
-            type             fieldAverage;
-            libs             (fieldFunctionObjects);
-            executeControl   timeStep;
-            executeInterval  1;
-            writeControl     writeTime;
-            writeInterval    1;
-            startTime        4e-3;
-
-            fields
-            (
-                U
-                {
-                    mean        on;
-                    prime2Mean  on;
-                    base        time;
-                }
-
-                p
-                {
-                    mean        on;
-                    prime2Mean  on;
-                    base        time;
-                }
-            );
-        }
+    #include "FOResolutionIndex"
+    #include "FOmaskedResolutionIndex"
 
     solverInfo
     {

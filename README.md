@@ -3,12 +3,11 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 ## TODO
 
-- influence spanwise extrusion
-- grid convergence study
-- extend post-processing scripts for analysis of cp-distributions etc.
+- influence tripping
+- extend post-processing scripts for analysis of cp-distributions, tau_w, yPlus and shock position
 - refactoring and documentation
 
-
+- higher sampling rate of surfaces
 - include sweep angle in IC
 - analyse influnce sweep angle
 - include pitching for DMDc analysis

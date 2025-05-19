@@ -5,8 +5,8 @@ cd "${0%/*}" || exit                                # Run from this directory
 # define final number of layers in span-wise direction
 n_layer=30
 
-# define extrusion length in span-wise direction
-ymax=0.0735
+# define extrusion length in span-wise direction -> corresponds to 21%c
+ymax=0.0315
 
 # define path to the OAT15 STL file
 pwd_oat="../geometry/airfoil.stl"
