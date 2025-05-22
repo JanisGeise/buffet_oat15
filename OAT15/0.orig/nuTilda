@@ -23,7 +23,7 @@ boundaryField
     outerBoundary
     {
         type            freestream;
-        freestreamValue uniform 6.1348e-5;
+        freestreamValue $internalField;
     }
 
     airfoil

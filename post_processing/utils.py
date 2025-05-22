@@ -11,50 +11,56 @@ from typing import Union, Tuple
 from scipy.interpolate import interp1d
 
 
-def load_ratio_rans_les(path, usecols=[0, 1, 2], names=["t", "les", "rans"]) -> pd.DataFrame:
-    dirs = sorted(glob(join(path, "postProcessing", "DESField", "*")), key=lambda x: float(x.split("/")[-1]))
+def load_ratio_rans_les(load_path, usecols=[0, 1, 2], names=["t", "les", "rans"]) -> pd.DataFrame:
+    dirs = sorted(glob(join(load_path, "postProcessing", "DESField", "*")), key=lambda x: float(x.split("/")[-1]))
     _ratio = [pd.read_csv(join(p, "DESModelRegions.dat"), sep=r"\s+", comment="#", header=None, usecols=usecols,
                           names=names) for p in dirs]
 
     if len(_ratio) == 1:
-        return _ratio[0]
+        _ratio = _ratio[0]
     else:
         _ratio = pd.concat(_ratio)
 
-        # remove duplicates (resulting from dt < write precision) and reset the idx
-        _ratio.drop_duplicates(["t"], inplace=True)
-        _ratio.reset_index(inplace=True, drop=True)
-        return _ratio
+    # remove duplicates (resulting from dt < write precision) and reset the idx
+    _ratio.drop_duplicates(["t"], inplace=True)
+    _ratio.reset_index(inplace=True, drop=True)
+    return _ratio
 
 
-def load_yplus(path, usecols=[0, 2, 3, 4], names=["t", "yPlus_min", "yPlus_max", "yPlus_avg"]) -> pd.DataFrame:
-    dirs = sorted(glob(join(path, "postProcessing", "yPlus", "*")), key=lambda x: float(x.split("/")[-1]))
-    _yplus = [pd.read_csv(join(p, "yPlus.dat"), sep=r"\s+", comment="#", header=None, usecols=usecols, names=names)
-              for p in dirs]
+def load_yplus(load_path, patch_name: str = "airfoil") -> pd.DataFrame:
+    dirs = sorted(glob(join(load_path, "postProcessing", "yPlus", "*")), key=lambda x: float(x.split("/")[-1]))
+    _yplus = [pd.read_csv(join(p, "yPlus.dat"), sep=r"\s+", comment="#", header=None, usecols=list(range(5)),
+                          names=["t", "patch", "yPlus_min", "yPlus_max", "yPlus_avg"]) for p in dirs]
+
     if len(_yplus) == 1:
-        return _yplus[0]
+        _yplus = _yplus[0]
     else:
         _yplus = pd.concat(_yplus)
 
-        # remove duplicates (resulting from dt < write precision) and reset the idx
-        _yplus.drop_duplicates(["t"], inplace=True)
-        _yplus.reset_index(inplace=True, drop=True)
-        return _yplus
+    # only keep the target patch name
+    _yplus = _yplus[_yplus.patch == patch_name]
+
+    # remove duplicates (resulting from dt < write precision) and reset the idx
+    _yplus.drop_duplicates(["t"], inplace=True)
+    _yplus.reset_index(inplace=True, drop=True)
+
+    return _yplus
 
 
-def load_force_coeffs(path, usecols=[0, 1, 4], names=["t", "cx", "cy"]) -> pd.DataFrame:
-    dirs = sorted(glob(join(path, "postProcessing", "forces", "*")), key=lambda x: float(x.split("/")[-1]))
+def load_force_coeffs(load_path, usecols=[0, 1, 4], names=["t", "cx", "cy"]) -> pd.DataFrame:
+    dirs = sorted(glob(join(load_path, "postProcessing", "forces", "*")), key=lambda x: float(x.split("/")[-1]))
     coeffs = [pd.read_csv(join(p, "coefficient.dat"), sep=r"\s+", comment="#", header=None, usecols=usecols, names=names)
               for p in dirs]
+
     if len(coeffs) == 1:
-        return coeffs[0]
+        coeffs = coeffs[0]
     else:
         coeffs = pd.concat(coeffs)
 
-        # remove duplicates (resulting from dt < write precision) and reset the idx
-        coeffs.drop_duplicates(["t"], inplace=True)
-        coeffs.reset_index(inplace=True, drop=True)
-        return coeffs
+    # remove duplicates (resulting from dt < write precision) and reset the idx
+    coeffs.drop_duplicates(["t"], inplace=True)
+    coeffs.reset_index(inplace=True, drop=True)
+    return coeffs
 
 
 def compute_fft(data: np.ndarray, dt: Union[float, int]) -> Tuple[np.ndarray, np.ndarray]:
@@ -100,6 +106,7 @@ def get_pimple_iterations(load_path: str) -> Tuple[list, list]:
             elif line.startswith("Time = "):
                 times.append(float(line.split()[-1].strip()))
     return times, data
+
 
 if __name__ == "__main__":
     pass

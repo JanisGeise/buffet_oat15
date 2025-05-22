@@ -23,7 +23,7 @@ boundaryField
     outerBoundary
     {
         type            calculated;
-        value           uniform 6.19016e-6;
+        value           $internalField;
     }
 
     airfoil

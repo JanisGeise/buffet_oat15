@@ -3,9 +3,12 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 ## TODO
 
-- influence tripping
+- implement numerical tripping somehow
 - extend post-processing scripts for analysis of cp-distributions, tau_w, yPlus and shock position
 - refactoring and documentation
+- avoid writing fields for total(p)coefficient and wallShearStress since they are already written out as surface data
+- try to simplify grid generation
+
 
 - higher sampling rate of surfaces
 - include sweep angle in IC
@@ -18,7 +21,7 @@ top-level of the repository
 
 - the simulation setup is located in the directory `OAT15`
 - to execute the meshing run the `Allrun.pre`
-- to execute the simulation (including the meshing) run the `Allrun` script
+- to execute the simulation (including the meshing) run the `Allrun` script (executes the meshing as well)
 
 ## Visualization of the results
 
