@@ -1,0 +1,229 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     rhoPimpleFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         0.044;
+
+deltaT          5e-7;
+
+writeControl    adjustable;
+
+writeInterval   2.5e-4;
+
+purgeWrite      0;
+
+writeFormat     binary;
+
+writePrecision   8;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+adjustTimeStep  yes;
+
+maxCo           0.95;
+
+maxDeltaT       1e-6;
+
+functions
+{
+    pressure
+    {
+        type            pressure;
+        libs            (fieldFunctionObjects);
+        mode            totalCoeff;
+        pInf            75230;
+        rhoInf          0.957837;
+
+        Uinlet          238.845;    // free stream velocity
+        alpha           5.0;        // angle of attack
+
+        Ux      #eval{$Uinlet * cos(degToRad($alpha))};
+        Uz      #eval{$Uinlet * sin(degToRad($alpha))};
+
+        UInf         ($Ux 0 $Uz);
+
+        writeFields     false;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
+    forces
+    {
+        type            forceCoeffs;
+        libs            (forces);
+        writeControl    timeStep;
+        writeInterval   1;
+        log             false;
+
+        patches
+        (
+            airfoil
+        );
+
+        alpha         -5.0; // angle of attack in degrees
+        unitVec_x         (1.0 0.0 0.0);
+        unitVec_z         (0.0 0.0 1.0);
+        // not to be changed
+        alpha         #eval{ degToRad($alpha) };
+        cos_alpha     #eval{ cos($alpha) };
+        sin_alpha     #eval{ sin($alpha) };
+        neg_sin_alpha #eval{ - $sin_alpha };
+        rot_matrix    ($cos_alpha 0.0 $sin_alpha 0.0 1.0 0.0 $neg_sin_alpha 0.0 $cos_alpha);
+        rotatedVec_x        #eval{ $[(tensor)rot_matrix] & $[(vector)unitVec_x] };
+        rotatedVec_z        #eval{ $[(tensor)rot_matrix] & $[(vector)unitVec_z] };
+     
+        CofR        (0 0 0);
+        liftDir     $rotatedVec_z;
+        dragDir     $rotatedVec_x;
+        pitchAxis   (0 1 0);
+        
+        rhoInf      0.957837;
+        magUInf     238.845;
+        lRef        0.15;
+        Aref        0.004725;   // projected area of the airfoil
+    }
+
+    Mach
+    {
+        type            MachNo;
+        libs            (fieldFunctionObjects);
+        field           U;
+        log             true;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
+    DESField
+    {
+        type            DESModelRegions;
+        libs            (fieldFunctionObjects);
+        result          DESField;
+        log             true;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
+    wallShearStress
+    {
+        type            wallShearStress;
+        libs            (fieldFunctionObjects);
+        patches         (airfoil);
+        log             true;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
+    surface
+    {
+        type            surfaces;
+        libs            (sampling);
+        writeControl    writeTime;
+        startTime       3e-3;
+
+        surfaceFormat   raw;
+        fields          (total(p)_coeff yPlus p rho T wallShearStress);
+
+        surfaces
+        {
+            airfoil
+            {
+                type            patch;
+                patches         (airfoil);
+                interpolate     true;
+                invariant       true;
+                surfaceFormat   raw;
+            }
+        }
+    }
+
+    yPlus
+    {
+        type            yPlus;
+        libs            (fieldFunctionObjects);
+        log             true;
+        writeFields     false;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeControl    timeStep;
+        writeInterval   1;
+    }
+
+    fieldAverage
+        {
+            type             fieldAverage;
+            libs             (fieldFunctionObjects);
+            executeControl   timeStep;
+            executeInterval  1;
+            writeControl     writeTime;
+            writeInterval    1;
+            timeStart        4e-3;
+
+            fields
+            (
+                U
+                {
+                    mean        on;
+                    prime2Mean  on;
+                    base        time;
+                }
+
+                p
+                {
+                    mean        on;
+                    prime2Mean  on;
+                    base        time;
+                }
+            );
+        }
+
+    // #include "FOResolutionIndex"
+    // #include "FOmaskedResolutionIndex"
+   
+    solverInfo
+    {
+        type            solverInfo;
+        libs            ("libutilityFunctionObjects.so");
+        fields          (U p T);
+        writeResidualFields no;
+        executeControl  timeStep;
+        executeInterval 1;
+        writeControl    timeStep;
+        writeInterval   1;
+    }
+}
+
+// ************************************************************************* //

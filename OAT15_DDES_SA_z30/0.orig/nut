@@ -28,9 +28,8 @@ boundaryField
 
     airfoil
     {
-        type            nutUSpaldingWallFunction;
-        value           $internalField;
-
+        type            fixedValue;
+        value           uniform 0;
     }
 
     Front

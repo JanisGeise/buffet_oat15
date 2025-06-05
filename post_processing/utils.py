@@ -3,12 +3,14 @@
 """
 import numpy as np
 import pandas as pd
+import torch as pt
 
 from glob import glob
 from os.path import join
 from scipy.signal import welch
 from typing import Union, Tuple
 from scipy.interpolate import interp1d
+from flowtorch.data import FOAMDataloader
 
 
 def load_ratio_rans_les(load_path, usecols=[0, 1, 2], names=["t", "les", "rans"]) -> pd.DataFrame:
@@ -106,6 +108,48 @@ def get_pimple_iterations(load_path: str) -> Tuple[list, list]:
             elif line.startswith("Time = "):
                 times.append(float(line.split()[-1].strip()))
     return times, data
+
+
+def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
+                           field: str = "UMean") -> Tuple[pt.Tensor, list]:
+    """
+    TODO: doku
+
+    :param load_path:
+    :param time_boundaries:
+    :param field:
+    :return:
+    """
+    loader = FOAMDataloader(load_path)
+
+    # get the defined boundaries for start and end time to use if provided
+    if time_boundaries is not None:
+        idx = sorted([i for i, t in enumerate(loader.write_times) if t in time_boundaries])
+        write_times = loader.write_times[idx[0]:idx[1]+1]
+
+    # else use all times steps but zero
+    else:
+        write_times = loader.write_times[1:]
+
+    # check for the time steps in which the target filed is present
+    write_times = [t for t in write_times if field in loader.field_names[t]]
+
+    # compute the norm of the field in the last time step
+    norm_first_field = loader.load_snapshot(field, write_times[0]).norm()
+
+    # now compute the difference of the norm between two consecutive time steps
+    all_norms, last_snapshot = [], 0
+    for i in range(len(write_times)):
+        if i == 0:
+            last_snapshot = loader.load_snapshot(field, write_times[i])
+            continue
+        new_snapshot = loader.load_snapshot(field, write_times[i])
+        dt = float(write_times[i]) - float(write_times[i-1])
+        all_norms.append(((new_snapshot-last_snapshot) / dt).norm() / norm_first_field)
+        last_snapshot = new_snapshot
+
+    # don't return the norm of the last field, since the difference is zero
+    return pt.tensor(list(map(float, write_times))), all_norms
 
 
 if __name__ == "__main__":

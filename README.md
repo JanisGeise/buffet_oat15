@@ -1,9 +1,10 @@
 # Transonic shock buffet of an OAT15 airfoil in OpenFOAM
 Setup for execution and analysis of simulations of transonic shock buffet for an OAT 15 airfoil
 
+- for DDES OpenFOAMv2412 is required
+
 ## TODO
 
-- implement numerical tripping somehow
 - extend post-processing scripts for analysis of cp-distributions, tau_w, yPlus and shock position
 - refactoring and documentation
 - avoid writing fields for total(p)coefficient and wallShearStress since they are already written out as surface data

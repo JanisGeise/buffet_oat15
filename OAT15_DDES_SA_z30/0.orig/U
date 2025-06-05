@@ -14,30 +14,27 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// see, e.g., https://en.wikipedia.org/wiki/Rotation_matrix
-// rotates a vector by alpha in counter-clockwise direction (around the z-axis)
-// Ufree is the free stream velocity vector at zero angle of attack
-alpha         -5.0; // angle of attack in degrees
-Ufree         (238.845 0.0 0.0);
-//Ufree         (1.0 0.0 0.0);
-// not to be changed
-alpha         #eval{ degToRad($alpha) };
-cos_alpha     #eval{ cos($alpha) };
-sin_alpha     #eval{ sin($alpha) };
-neg_sin_alpha #eval{ - $sin_alpha };
-//rot_matrix    ($cos_alpha $neg_sin_alpha 0.0 $sin_alpha $cos_alpha 0.0 0.0 0.0 1.0);
-rot_matrix    ($cos_alpha 0.0 $sin_alpha 0.0 1.0 0.0 $neg_sin_alpha 0.0 $cos_alpha);
-Uinlet        #eval{ $[(tensor)rot_matrix] & $[(vector)Ufree] };
+
+// taken from https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/0.orig/U
+Uinlet          238.845;    // free stream velocity
+AoA             5.0;        // angle of attack
+beta            0.0;        // sweep angle
+
+Ux              #eval{$Uinlet * cos(degToRad($AoA)) };
+Uz              #eval{$Uinlet * sin(degToRad($AoA)) };
+
+Uinfinity         ($Ux  0.0 $Uz);
+
 dimensions      [0 1 -1 0 0 0 0];
 
-internalField   uniform $Uinlet;
+internalField   uniform $Uinfinity;
 
 boundaryField
 {
     outerBoundary
     {
         type            freestreamVelocity;
-        freestreamValue uniform $Uinlet;
+        freestreamValue uniform $Uinfinity;
     }
 
     airfoil
