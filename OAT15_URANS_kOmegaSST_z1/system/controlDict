@@ -88,23 +88,21 @@ functions
             airfoil
         );
 
-        alpha         -5.0; // angle of attack in degrees
-        unitVec_x         (1.0 0.0 0.0);
-        unitVec_z         (0.0 0.0 1.0);
-        // not to be changed
-        alpha         #eval{ degToRad($alpha) };
-        cos_alpha     #eval{ cos($alpha) };
-        sin_alpha     #eval{ sin($alpha) };
-        neg_sin_alpha #eval{ - $sin_alpha };
-        rot_matrix    ($cos_alpha 0.0 $sin_alpha 0.0 1.0 0.0 $neg_sin_alpha 0.0 $cos_alpha);
-        rotatedVec_x        #eval{ $[(tensor)rot_matrix] & $[(vector)unitVec_x] };
-        rotatedVec_z        #eval{ $[(tensor)rot_matrix] & $[(vector)unitVec_z] };
-     
-        CofR        (0 0 0);
-        liftDir     $rotatedVec_z;
-        dragDir     $rotatedVec_x;
+        // taken from: https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/system/forceCoeffs
+        AoA             5.0;       // angle of attack
+
+        liftDir         (
+                            #eval{-sin(degToRad($AoA))} 
+                            0 
+                            #eval{cos(degToRad($AoA))}
+                        );
+        dragDir         (
+                            #eval{cos(degToRad($AoA))} 
+                            0 
+                            #eval{sin(degToRad($AoA))}
+                        );
         pitchAxis   (0 1 0);
-        
+        CofR        (0.25 0 0); // center of rotation at 25% chord
         rhoInf      0.957837;
         magUInf     238.845;
         lRef        0.15;

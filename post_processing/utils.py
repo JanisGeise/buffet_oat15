@@ -149,7 +149,7 @@ def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
         last_snapshot = new_snapshot
 
     # don't return the norm of the last field, since the difference is zero
-    return pt.tensor(list(map(float, write_times))), all_norms
+    return pt.tensor(list(map(float, write_times)))[1:], all_norms
 
 
 if __name__ == "__main__":
