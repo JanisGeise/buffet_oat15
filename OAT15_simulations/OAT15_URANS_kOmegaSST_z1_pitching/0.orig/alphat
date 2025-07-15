@@ -9,40 +9,27 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volVectorField;
-    object      U;
+    class       volScalarField;
+    object      alphat;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-// see, e.g., https://en.wikipedia.org/wiki/Rotation_matrix
-// rotates a vector by alpha in counter-clockwise direction (around the z-axis)
-// Ufree is the free stream velocity vector at zero angle of attack
-alpha         -5.0; // angle of attack in degrees
-Ufree         (238.845 0.0 0.0);
-//Ufree         (1.0 0.0 0.0);
-// not to be changed
-alpha         #eval{ degToRad($alpha) };
-cos_alpha     #eval{ cos($alpha) };
-sin_alpha     #eval{ sin($alpha) };
-neg_sin_alpha #eval{ - $sin_alpha };
-//rot_matrix    ($cos_alpha $neg_sin_alpha 0.0 $sin_alpha $cos_alpha 0.0 0.0 0.0 1.0);
-rot_matrix    ($cos_alpha 0.0 $sin_alpha 0.0 1.0 0.0 $neg_sin_alpha 0.0 $cos_alpha);
-Uinlet        #eval{ $[(tensor)rot_matrix] & $[(vector)Ufree] };
-dimensions      [0 1 -1 0 0 0 0];
+dimensions      [1 -1 -1 0 0 0 0];
 
-internalField   uniform $Uinlet;
+internalField   uniform 0;
 
 boundaryField
 {
     outerBoundary
     {
-        type            freestreamVelocity;
-        freestreamValue uniform $Uinlet;
+        type            calculated;
+        value           uniform 0;
     }
 
     airfoil
     {
-        type            noSlip;
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
     }
 
     Front

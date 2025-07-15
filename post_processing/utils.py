@@ -120,6 +120,7 @@ def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
     :param field:
     :return:
     """
+    print(f"Starting with case: {load_path}.")
     loader = FOAMDataloader(load_path)
 
     # get the defined boundaries for start and end time to use if provided
@@ -140,6 +141,7 @@ def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
     # now compute the difference of the norm between two consecutive time steps
     all_norms, last_snapshot = [], 0
     for i in range(len(write_times)):
+        print(f"Loading time step ({i+1} / {len(write_times)}) t = {write_times[i]} s.")
         if i == 0:
             last_snapshot = loader.load_snapshot(field, write_times[i])
             continue

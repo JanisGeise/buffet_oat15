@@ -14,15 +14,14 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 - higher sampling rate of surfaces
 - include sweep angle in IC
 - analyse influnce sweep angle
-- include pitching for DMDc analysis
 
 ## Setup
-- the STL file for the OAT15 airfoil has to be located in a directory (*geometry*) in the
-top-level of the repository
+- the STL file for the OAT15 airfoil has to be located in a directory named *geometry* inside the *OAT15_simulations* directory
 
 - the simulation setup is located in the directory `OAT15`
 - to execute the meshing run the `Allrun.pre`
 - to execute the simulation (including the meshing) run the `Allrun` script (executes the meshing as well)
+- the OAT15 is expected to be scaled such that the chord length is $c=0.15m$
 
 ## Visualization of the results
 

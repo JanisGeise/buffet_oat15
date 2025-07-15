@@ -1,0 +1,68 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2006                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// taken from https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/0.orig/U
+Uinlet          238.845;    // free stream velocity
+
+// pitching around 5deg
+frequency       90;         // 90 Hz ~ buffet frequency
+amplitude       1;          // amplitude of 1 deg
+phase           90;         // make sure it's opposite of cl
+alpha           5.0;        // mean angle of attack
+
+// variable AoA to simulate pitching
+AoA             #eval{ $amplitude * sin(2 * pi() * $frequency * time() - degToRad($phase)) + $alpha };
+
+Ux              #eval{$Uinlet * cos(degToRad($AoA)) };
+Uz              #eval{$Uinlet * sin(degToRad($AoA)) };
+
+Uinfinity         ($Ux  0.0 $Uz);
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform $Uinfinity;
+
+boundaryField
+{
+    outerBoundary
+    {
+        type            freestreamVelocity;
+        freestreamValue uniform $Uinfinity;
+    }
+
+    airfoil
+    {
+        type            noSlip;
+    }
+
+    Front
+    {
+        type            empty;
+    }
+
+    Back
+    {
+        type            empty;
+    }
+    
+    processor
+    {
+        type  processor;
+        value $internalField;
+    }
+}
+
+// ************************************************************************* //

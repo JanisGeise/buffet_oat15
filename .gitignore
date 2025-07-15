@@ -12,5 +12,5 @@ __pycache__/
 .ipynb_checkpoints
 /post_processing/.ipynb_checkpoints
 
-# don't push the geometry directory containing the STL files of the cylinder and OAT
-/geometry/
+# don't push the geometry directory containing the STL files of the OAT15
+/OAT15_simulations/geometry/airfoil.stl

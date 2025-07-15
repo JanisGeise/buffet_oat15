@@ -6,25 +6,6 @@
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 
-    // resolutionIndex for assessing mesh quality: https://www.openfoam.com/news/main-news/openfoam-v2212/post-processing#turbulent_mesh_quality
-    // for SA-DES we need to add a work-around: https://develop.openfoam.com/Development/openfoam/-/merge_requests/569
-    /*
-    turbulenceFields
-    {
-        type            turbulenceFields;
-        libs            (fieldFunctionObjects);
-        fields
-        (
-            k
-        );
-
-        executeControl  timeStep;
-        executeInterval 1;
-        writeControl    writeTime;
-        timeStart        4e-3;
-    }
-    */
-
     nu
     {
         type            coded;

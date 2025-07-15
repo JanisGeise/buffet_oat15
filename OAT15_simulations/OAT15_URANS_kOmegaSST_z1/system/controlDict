@@ -50,6 +50,9 @@ maxCo           0.95;
 
 maxDeltaT       1e-6;
 
+Uinlet          238.845;    // free stream velocity
+alpha           5.0;        // angle of attack
+
 functions
 {
     pressure
@@ -59,9 +62,6 @@ functions
         mode            totalCoeff;
         pInf            75230;
         rhoInf          0.957837;
-
-        Uinlet          238.845;    // free stream velocity
-        alpha           5.0;        // angle of attack
 
         Ux      #eval{$Uinlet * cos(degToRad($alpha))};
         Uz      #eval{$Uinlet * sin(degToRad($alpha))};
@@ -89,22 +89,21 @@ functions
         );
 
         // taken from: https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/system/forceCoeffs
-        AoA             5.0;       // angle of attack
 
         liftDir         (
-                            #eval{-sin(degToRad($AoA))} 
+                            #eval{-sin(degToRad($alpha))} 
                             0 
-                            #eval{cos(degToRad($AoA))}
+                            #eval{cos(degToRad($alpha))}
                         );
         dragDir         (
-                            #eval{cos(degToRad($AoA))} 
+                            #eval{cos(degToRad($alpha))} 
                             0 
-                            #eval{sin(degToRad($AoA))}
+                            #eval{sin(degToRad($alpha))}
                         );
         pitchAxis   (0 1 0);
         CofR        (0.25 0 0); // center of rotation at 25% chord
         rhoInf      0.957837;
-        magUInf     238.845;
+        magUInf     $Uinlet;
         lRef        0.15;
         Aref        0.004725;   // projected area of the airfoil
     }
@@ -114,18 +113,6 @@ functions
         type            MachNo;
         libs            (fieldFunctionObjects);
         field           U;
-        log             true;
-        executeControl  writeTime;
-        executeInterval 1;
-        writeControl    writeTime;
-        writeInterval   1;
-    }
-
-    DESField
-    {
-        type            DESModelRegions;
-        libs            (fieldFunctionObjects);
-        result          DESField;
         log             true;
         executeControl  writeTime;
         executeInterval 1;

@@ -1,0 +1,57 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2206                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+    nu
+    {
+        type            coded;
+        libs            (utilityFunctionObjects);
+        name            calculateNu;
+
+        codeExecute
+        #{
+            volScalarField nu("nu", mesh().lookupObject<volScalarField>("thermo:mu") / mesh().lookupObject<volScalarField>("rho"));
+            nu.write();
+        #};
+
+        executeControl   writeTime;
+        executeInterval  1;
+        writeControl     writeTime;
+        writeInterval    1;
+        timeStart        4e-3;
+    }
+
+    CelikNuIndex
+    {
+        type             resolutionIndex;
+        libs             (fieldFunctionObjects);
+        model            CelikNuIndex;
+        result           CelikNuField;
+        nu               "nu";
+        executeControl   writeTime;
+        executeInterval  1;
+        writeControl     writeTime;
+        writeInterval    1;
+        timeStart        4e-3;
+    }
+
+    CelikEtaIndex
+    {
+        type             resolutionIndex;
+        libs             (fieldFunctionObjects);
+        model            CelikEtaIndex;
+        result           CelikEtaField;
+        nu               "nu";
+        executeControl   writeTime;
+        executeInterval  1;
+        writeControl     writeTime;
+        writeInterval    1;
+        timeStart        4e-3;
+    }
+
+
+// ************************************************************************* //
