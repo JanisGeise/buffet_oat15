@@ -154,5 +154,23 @@ def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
     return pt.tensor(list(map(float, write_times)))[1:], all_norms
 
 
+def compute_camber_line(x_coordinates, n_points: int = 1000, c: float = 0.15):
+    # use parabolic spline to compute camber line
+    # x = pt.linspace(0, 1, steps=n_points)
+
+    # dummy values for max. camber and position of max. camber
+    xf_max, f_max = 0.5, 0.005
+
+    x_coordinates /= c
+    # a = 1 / xf^2 * f_max
+    a = 1 / pow(xf_max, 2) * f_max
+    # (1 - 2 * xf) / xf^2
+    b = (1 - 2 * xf_max) / pow(xf_max, 2)
+    # y = a * (x * (1 - x) / (1 + b * x))
+    _camber = a * (x_coordinates * (1 - x_coordinates) / (1 + b * x_coordinates))
+    x_coordinates *= c
+    return x_coordinates, _camber
+
+
 if __name__ == "__main__":
     pass
