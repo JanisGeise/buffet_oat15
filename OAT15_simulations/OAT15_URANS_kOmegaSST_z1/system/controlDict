@@ -52,6 +52,7 @@ maxDeltaT       1e-6;
 
 Uinlet          238.845;    // free stream velocity
 alpha           5.0;        // angle of attack
+rho             0.957837;      // free stream density
 
 functions
 {
@@ -61,7 +62,7 @@ functions
         libs            (fieldFunctionObjects);
         mode            totalCoeff;
         pInf            75230;
-        rhoInf          0.957837;
+        rhoInf          $rho;
 
         Ux      #eval{$Uinlet * cos(degToRad($alpha))};
         Uz      #eval{$Uinlet * sin(degToRad($alpha))};
@@ -102,7 +103,7 @@ functions
                         );
         pitchAxis   (0 1 0);
         CofR        (0.25 0 0); // center of rotation at 25% chord
-        rhoInf      0.957837;
+        rhoInf      $rho;
         magUInf     $Uinlet;
         lRef        0.15;
         Aref        0.004725;   // projected area of the airfoil
@@ -130,6 +131,7 @@ functions
         executeInterval 1;
         writeControl    writeTime;
         writeInterval   1;
+        timeStart       3e-3;
     }
 
     surface
@@ -137,7 +139,7 @@ functions
         type            surfaces;
         libs            (sampling);
         writeControl    writeTime;
-        startTime       3e-3;
+        timeStart       3e-3;
 
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
@@ -194,9 +196,6 @@ functions
                 }
             );
         }
-
-    // #include "FOResolutionIndex"
-    // #include "FOmaskedResolutionIndex"
    
     solverInfo
     {
