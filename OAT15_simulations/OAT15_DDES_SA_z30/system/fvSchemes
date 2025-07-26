@@ -35,7 +35,21 @@ divSchemes
 {
     default         none;
 
-    div(phi,U)      Gauss limitedLinear 1;
+    // div(phi,U)      Gauss limitedLinear 1;
+
+    // https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2212/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes
+    // https://www.openfoam.com/news/main-news/openfoam-v2212/numerics#deshybrid
+    div(phi,U)                          Gauss DEShybrid
+        linear                        // scheme 1
+        linearUpwind grad(U)          // scheme 2
+        delta                         // LES delta name, e.g. 'delta', 'hmax'
+        0.65                          // CDES coefficient
+        1.0                           // Reference velocity scale
+        1.0                           // Reference length scale
+        0.0                           // Minimum sigma limit (0-1)
+        1.0                           // Maximum sigma limit (0-1)
+        1.0                           // Limiter of B function
+        10.0;                         // nut limiter (if > 1, GAM extension is active)
 
     turbulence       Gauss limitedLinear 1;
     div(phi,nuTilda) $turbulence;
