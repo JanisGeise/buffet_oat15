@@ -7,7 +7,6 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 - refactoring and documentation (incl. mesher)
 - add DDES setup once URANS setup is validated
-- link SALSA once repo uploaded
 
 - higher sampling rate of surfaces -> avg. cp
 - grid convergence study for blockMesh grid
@@ -31,7 +30,7 @@ To run the simulation follow these steps:
 3. execute the simulation via the `Allrun` script
 
 **Note:** To achieve buffet, the *SA-SALSA* turbulence model is required. Since this model is not directly available in 
-`OpenFOAM` as of now, it has to be compiled from here **(TODO: add link to repo once uploaded)**.
+`OpenFOAM` as of now, it has to be compiled from [here](https://github.com/JanisGeise/OF_SA_SALSA).
 
 ## Validation
 In order to validate the simulation setup, the experimental data of J*acquin et al.* is used (see references).
@@ -52,14 +51,13 @@ as `csv` files in the directory `validation_exp_data`. The corresponding numeric
 
 ## References
 
-**Ma = 0.72, Re = 2e6, $\alpha = 5^\circ$:**
+**Ma = 0.72, Re = 2e6, $\mathbf{\alpha = 5^\circ}$:**
 - J. Kleinert, M. Ehrle, A. Waldmann, and T. Lutz. *Wake Tail Plane Interactions for a Tandem Wing Config-
-uration in High-Speed Stall Conditions.* 2023. doi: 10.1007/s13272-023-00670-1. 
+uration in High-Speed Stall Conditions.* 2023. doi: [10.1007/s13272-023-00670-1](https://link.springer.com/article/10.1007/s13272-023-00670-1). 
 - J. Kleinert, J. Stober, and T. Lutz. *Numerical simulation of wake interactions on a tandem wing configuration
-in high-speed stall conditions.* In: CEAS Aeronautical Journal 14.1 (2023), pp. 171–186. doi: 10 . 1007 /
-s13272-022-00634-x. 
+in high-speed stall conditions.* In: CEAS Aeronautical Journal 14.1 (2023), pp. 171–186. doi: [10.1007/s13272-022-00634-x](https://link.springer.com/article/10.1007/s13272-022-00634-x)
 
-**Validation at Ma = 0.73, Re = 3e6, $\alpha = 2.5^\circ, 3.5^\circ$:**
+**Validation at Ma = 0.73, Re = 3e6, $\mathbf{\alpha = 2.5^\circ, 3.5^\circ}$:**
 - L. Jacquin, P. Molton, S. Deck, B. Maury, and D. Soulevant. *Experimental Study of Shock Oscillation over a Transonic
 Supercritical Profile*, AIAA JOURNAL Vol. 47, No. 9, September 2009, https://arc.aiaa.org/doi/10.2514/1.30190
 
