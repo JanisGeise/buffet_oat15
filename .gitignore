@@ -14,3 +14,7 @@ __pycache__/
 
 # don't push the geometry directory containing the STL files of the OAT15
 /OAT15_simulations/geometry/airfoil.stl
+/post_processing/.ipynb_checkpoints/
+/grid_generation/oat15.dat
+/grid_generation/oat15_reversed.dat
+/OAT15_simulations/URANS_SA_SALSA_validation_Re3e6_Ma0.73/system/blockMeshDict

@@ -53,7 +53,6 @@ def load_force_coeffs(load_path, usecols=[0, 1, 4], names=["t", "cx", "cy"]) -> 
     dirs = sorted(glob(join(load_path, "postProcessing", "forces", "*")), key=lambda x: float(x.split("/")[-1]))
     coeffs = [pd.read_csv(join(p, "coefficient.dat"), sep=r"\s+", comment="#", header=None, usecols=usecols, names=names)
               for p in dirs]
-
     if len(coeffs) == 1:
         coeffs = coeffs[0]
     else:
@@ -154,13 +153,8 @@ def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
     return pt.tensor(list(map(float, write_times)))[1:], all_norms
 
 
-def compute_camber_line(x_coordinates, n_points: int = 1000, c: float = 0.15):
+def compute_camber_line(x_coordinates, c: float = 0.15, xf_max: float = 0.5, f_max: float = 0.005):
     # use parabolic spline to compute camber line
-    # x = pt.linspace(0, 1, steps=n_points)
-
-    # dummy values for max. camber and position of max. camber
-    xf_max, f_max = 0.5, 0.005
-
     x_coordinates /= c
     # a = 1 / xf^2 * f_max
     a = 1 / pow(xf_max, 2) * f_max
@@ -170,6 +164,22 @@ def compute_camber_line(x_coordinates, n_points: int = 1000, c: float = 0.15):
     _camber = a * (x_coordinates * (1 - x_coordinates) / (1 + b * x_coordinates))
     x_coordinates *= c
     return x_coordinates, _camber
+
+
+def load_residuals(load_path, name: str = "0") -> pd.DataFrame:
+    # we have to read in the header separately since there is a # which causes misalignment of the columns
+    with open(join(load_path, "postProcessing", "solverInfo", name, "solverInfo.dat"), "r") as f:
+        lines = f.readlines()
+        header_line = lines[1].lstrip("#").strip()  # Remove leading "#" and strip spaces
+        _names = header_line.split()
+
+    # now we can load the file with the correct header
+    _solverInfo = pd.read_csv(join(load_path, "postProcessing", "solverInfo", name, "solverInfo.dat"), names=_names,
+                              sep=r"\s+", comment="#")
+    _solverInfo.drop_duplicates(["Time"], inplace=True)
+    _solverInfo.reset_index(inplace=True, drop=True)
+
+    return _solverInfo
 
 
 if __name__ == "__main__":
