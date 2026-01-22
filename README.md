@@ -5,11 +5,9 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 ## TODO
 
-- refactoring and documentation (incl. mesher)
 - add DDES setup once URANS setup is validated
-
+- add sketch of the block mesh
 - higher sampling rate of surfaces -> avg. cp
-- grid convergence study for blockMesh grid
 
 ## Setup
 The meshing of the airfoil is done with `blockMesh`. Therefore, a python script to generate the `blockMeshDict`is available.
@@ -19,7 +17,8 @@ To run the simulation follow these steps:
 
 1. the meshing tool is located inside the `grid_generation` directory
 2. it is expected, that the airfoil coordinates are provided in a textfile within the same directory
-3. the coordinates have to be sorted as *TE -> LE via SS -> TE via PS*
+3. the coordinates have to be sorted as *TE -> LE via SS -> TE via PS*. There is the option `reverse`, which can be passed
+to the `blockMeshGenerator` in case the coordinates are sorted as *TE -> LE via PS -> TE via SS*
 4. adjust the path to the desired output directory
 5. execute the `generate_grid.py` to generate the `blockMeshDict`
 
