@@ -7,17 +7,12 @@ touch post.foam
 
 # execute the meshing, assuming blockMeshDict was already written
 runApplication blockMesh
-exit
 
 # decompose and renumber
 runApplication decomposePar
 runParallel flattenMesh     # fixes nonAlignedEdges for 2D meshes
 runParallel checkMesh -allGeometry -allTopology
 runParallel renumberMesh -overwrite
-exit
-
-# omit mapping due to nuTilda issue for now
-# runParallel mapFieldsPar -sourceTime latestTime -consistent -mapMethod direct -fields "(p U rho T Ma alphat nut)" "../rans/"
 
 # execute flow solver
 runParallel "$(getApplication)"
