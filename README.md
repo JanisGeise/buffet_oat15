@@ -7,7 +7,7 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 - add DDES setup once URANS setup is validated
 - add sketch of the block mesh
-- higher sampling rate of surfaces -> avg. cp
+- higher sampling rate of surfaces -> avg. cp -> currently only 8 snapshots per buffet cycle
 
 ## Setup
 The meshing of the airfoil is done with `blockMesh`. Therefore, a python script to generate the `blockMeshDict`is available.
