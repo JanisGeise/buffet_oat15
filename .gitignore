@@ -18,3 +18,4 @@ __pycache__/
 /grid_generation/oat15.dat
 /grid_generation/oat15_reversed.dat
 /OAT15_simulations/URANS_SA_SALSA_validation_Re3e6_Ma0.73/system/blockMeshDict
+/OAT15_simulations/DDES_SA_SALSA_validation_Re3e6_Ma0.73/system/blockMeshDict

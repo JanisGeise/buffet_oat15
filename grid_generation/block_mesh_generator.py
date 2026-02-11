@@ -30,7 +30,7 @@ FoamFile
 
 class BlockMeshGenerator:
     def __init__(self, load_path: str, file_name: str, write_path: str, scale: Union[int, float] = 1,
-                 y_min: Union[int, float] = -0.0375, y_max: Union[int, float]=0,
+                 y_min: Union[int, float] = -0.0375, y_max: Union[int, float]=0, n_cells_z: int = 1,
                  distance_LE: Union[int, float] = 0.05, first_layer_thickness: Union[int, float]=1e-5, reverse: bool = False,
                  use_yPlus: bool = False, expansion_rate: Union[int, float] = 1.2, projection_distance: list = None,
                  reynolds_number: Union[int, float] = None, yPlus_target: float = 1, u_infinity: Union[int, float] = 1,
@@ -45,6 +45,7 @@ class BlockMeshGenerator:
         :param scale: ratio to which the airfoil should be scaled to, defaults to 1
         :param y_min: min. extrusion coordinate, defaults to y = -0.0375
         :param y_max: max. extrusion coordinate, defaults to y = 0
+        :param n_cells_z: number of cells in spanwise direction, defaults to 1 (URANS)
         :param distance_LE: relative distance of the chord length in x-direction after which the first block should be placed
         :param first_layer_thickness: height of the first cell
         :param reverse: reverse the airfoil coordinates in case the orientation is TE -> LE (via PS) -> TE (via SS)
@@ -86,6 +87,9 @@ class BlockMeshGenerator:
         self._u_infinity = u_infinity
         self._density = density
         self._yPlus_target = yPlus_target
+
+        # number of cells in spanwise direction
+        self._nz =n_cells_z
 
         # airfoil properties
         self._ss = None
@@ -809,7 +813,7 @@ class BlockMeshGenerator:
         bt, eg, sg = "\n\thex", "edgeGrading", "simpleGrading"
 
         # number of cells and grading in spanwise direction (z-direction)
-        nz, gz, egz = 1, 1, "1 1 1 1"
+        nz, gz, egz = self._nz, 1, "1 1 1 1"
 
         # number of blocks in y-direction for the wake (3rd projection uses half of that value)
         ny_w = 20
@@ -1011,7 +1015,10 @@ class BlockMeshGenerator:
                    (50, 58, 59, 51), (42, 50, 51, 43)]
         _front += [(70, 71, 72, 73), (72, 82, 83, 73), (82, 90, 91, 83), (90, 94, 95, 91), (86, 95, 94, 87),
                    (78, 86, 87, 79), (70, 78, 79, 71)]
-        lines.append(self._assemble_boundaries("front", _front, "empty"))
+        if self._nz == 1:
+            lines.append(self._assemble_boundaries("front", _front, "empty"))
+        else:
+            lines.append(self._assemble_boundaries("front", _front, "cyclic;\n\t\tneighbourPatch  back"))
 
         # define back (inner mesh)
         _back = [(4, 5, 6, 7), (4, 10, 11, 5), (6, 14, 15, 7), (10, 18, 19, 11), (22, 4, 7, 23), (22, 25, 10, 4),
@@ -1023,7 +1030,10 @@ class BlockMeshGenerator:
                   (52, 60, 61, 53), (46, 52, 53, 47)]
         _back += [(74, 75, 76, 77), (76, 84, 85, 77), (84, 92, 93, 85), (92, 96, 97, 93), (88, 97, 96, 89),
                   (80, 88, 89, 81), (74, 80, 81, 75)]
-        lines.append(self._assemble_boundaries("back", _back, "empty"))
+        if self._nz == 1:
+            lines.append(self._assemble_boundaries("back", _back, "empty"))
+        else:
+            lines.append(self._assemble_boundaries("back", _back, "cyclic;\n\t\tneighbourPatch  front"))
 
         # define airfoil
         _airfoil = [(1, 2, 6, 5), (2, 12, 14, 6), (12, 33, 37, 14), (33, 37, 34, 30), (30, 17, 19, 34),
