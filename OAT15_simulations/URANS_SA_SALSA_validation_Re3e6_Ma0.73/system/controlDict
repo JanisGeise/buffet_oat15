@@ -139,7 +139,7 @@ functions
         type            surfaces;
         libs            (sampling);
         writeControl    writeTime;      // TODO: use higher sample freq. for surface data -> timeStep based ok or issue with variable dt?
-        startTime       0.1;
+        timeStart       0.6;
 
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
@@ -177,7 +177,7 @@ functions
             executeInterval  1;
             writeControl     writeTime;
             writeInterval    1;
-            timeStart        0.1;
+            timeStart        0.6;
 
             fields
             (
