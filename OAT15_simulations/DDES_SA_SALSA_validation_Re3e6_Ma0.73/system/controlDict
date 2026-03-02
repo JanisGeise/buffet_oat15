@@ -91,14 +91,14 @@ functions
 
         // taken from: https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/system/forceCoeffs
         liftDir         (
-                            #eval{-sin(degToRad($AoA))} 
+                            #eval{-sin(degToRad($alpha))} 
                             0 
-                            #eval{cos(degToRad($AoA))}
+                            #eval{cos(degToRad($alpha))}
                         );
         dragDir         (
-                            #eval{cos(degToRad($AoA))} 
+                            #eval{cos(degToRad($alpha))} 
                             0 
-                            #eval{sin(degToRad($AoA))}
+                            #eval{sin(degToRad($alpha))}
                         );
         pitchAxis   (0 1 0);
         CofR        (0.25 0 0); // center of rotation at 25% chord

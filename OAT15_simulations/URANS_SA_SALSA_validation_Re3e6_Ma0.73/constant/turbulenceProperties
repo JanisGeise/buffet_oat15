@@ -22,10 +22,9 @@ RAS
     turbulence          on;
     printCoeffs         on;
 
-    /*
     rhoInf              0.957837;
-    useRmod             true;
-    */
+    useRmod             true;       // Edward's modification
+    useSmod             true;      // strain rate instead of vorticity for Stilda
 }
 
 // ************************************************************************* //
