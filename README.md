@@ -3,12 +3,6 @@ Setup for execution and analysis of simulations of transonic shock buffet for an
 
 **Note:** to execute the DDES, `OpenFOAMv2412` or higher is required.
 
-## TODO
-
-- add DDES setup once URANS setup is validated
-- add sketch of the block mesh
-- higher sampling rate of surfaces -> avg. cp -> currently only 8 snapshots per buffet cycle
-
 ## Setup
 The meshing of the airfoil is done with `blockMesh`. Therefore, a python script to generate the `blockMeshDict`is available.
 To run the simulation follow these steps:

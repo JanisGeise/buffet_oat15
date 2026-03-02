@@ -28,7 +28,7 @@ deltaT          5e-7;
 
 writeControl    adjustable;
 
-writeInterval   1e-2;
+writeInterval   2e-3;
 
 purgeWrite      0;
 
@@ -93,14 +93,14 @@ functions
 
         // taken from: https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/system/forceCoeffs
         liftDir         (
-                            #eval{-sin(degToRad($AoA))} 
+                            #eval{-sin(degToRad($alpha))}
                             0 
-                            #eval{cos(degToRad($AoA))}
+                            #eval{cos(degToRad($alpha))}
                         );
         dragDir         (
-                            #eval{cos(degToRad($AoA))} 
+                            #eval{cos(degToRad($alpha))}
                             0 
-                            #eval{sin(degToRad($AoA))}
+                            #eval{sin(degToRad($alpha))}
                         );
         pitchAxis   (0 1 0);
         CofR        (0.25 0 0); // center of rotation at 25% chord
@@ -136,10 +136,14 @@ functions
 
     surface
     {
+        // sample surface data every 0.002 s (500 Hz), starting at t = 0.6s
         type            surfaces;
         libs            (sampling);
-        writeControl    writeTime;      // TODO: use higher sample freq. for surface data -> timeStep based ok or issue with variable dt?
         timeStart       0.6;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
 
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
@@ -152,7 +156,6 @@ functions
                 patches         (airfoil);
                 interpolate     true;
                 invariant       true;
-                surfaceFormat   raw;
             }
         }
     }
