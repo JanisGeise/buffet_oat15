@@ -28,7 +28,7 @@ deltaT          5e-7;
 
 writeControl    adjustable;
 
-writeInterval   1e-2;
+writeInterval   2e-3;
 
 purgeWrite      0;
 
@@ -136,7 +136,7 @@ functions
     {
         type            surfaces;
         libs            (sampling);
-        writeControl    writeTime;      // TODO: use higher sample freq. for surface data -> timeStep based ok or issue with variable dt?
+        writeControl    writeTime;
         timeStart       0.6;
 
         surfaceFormat   raw;
