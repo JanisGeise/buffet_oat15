@@ -41,18 +41,6 @@ boundaryField
     {
         type            cyclic;
     }
-    
-    processor
-    {
-        type  processor;
-        value $internalField;
-    }
-
-    processorCyclic
-    {
-        type  processorCyclic;
-        value $internalField;
-    }
 }
 
 // ************************************************************************* //

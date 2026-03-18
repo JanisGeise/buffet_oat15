@@ -163,6 +163,14 @@ functions
                 invariant       true;
                 surfaceFormat   raw;
             }
+
+            plane_xz
+            {
+                type    plane;
+                source  cells;
+                point   (0 -0.125 0);
+                normal  (0 1 0);
+            }
         }
     }
 

@@ -14,18 +14,15 @@ runApplication snappyHexMesh -overwrite
 # clean up
 rm constant/polyMesh/cellLevel constant/polyMesh/level0Edge constant/polyMesh/pointLevel 0/cellLevel 0/pointLevel
 
-# parallel not working, order createPatch and extrusion also no effect -> if order different extrudeMesh fails (even with adjusted names)
-runApplication createPatch -overwrite
-runApplication extrudeMesh -noFunctionObjects
-
 # decompose and check
+runApplication extrudeMesh -noFunctionObjects
+runApplication createPatch -overwrite
 runApplication decomposePar
-
 runParallel checkMesh -allGeometry -allTopology # -writeAllFields 
 runParallel renumberMesh -overwrite
 
 # execute flow solver
-runParallel "$(getApplication)"            # TODO: rhoPimpleFoam scotch not found error if createPatch is used, doesn't matter if serial or parallel
+runParallel "$(getApplication)"
 
 # compute the cell centers and volumes
 runParallel postProcess -func "writeCellCentres" -constant -time none

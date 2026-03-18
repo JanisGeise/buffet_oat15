@@ -77,9 +77,13 @@ snGradSchemes
 
 wallDist
 {
+    /*
+    // scotch not supported as decomposition method
     // https://gitlab.com/openfoam/core/openfoam/-/blob/master/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes?ref_type=heads
     method          exactDistance;
     nRequired       yes;
+    */
+    method  meshWave;
 }
 
 // ************************************************************************* //
