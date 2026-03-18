@@ -136,11 +136,22 @@ functions
     {
         type            surfaces;
         libs            (sampling);
+        timeStart       0.06;
+        executeControl  writeTime;
+        executeInterval 1;
         writeControl    writeTime;
-        timeStart       0.6;
+        writeInterval   1;
 
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
+
+        formatOptions
+        {
+            raw
+            {
+                normal true;
+            }
+        }
 
         surfaces
         {
@@ -194,7 +205,17 @@ functions
                 }
             );
         }
-   
+
+    Co
+    {
+        type            CourantNo;
+        libs            (fieldFunctionObjects);
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
     solverInfo
     {
         type            solverInfo;

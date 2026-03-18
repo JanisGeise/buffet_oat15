@@ -22,6 +22,7 @@ LES
     printCoeffs     yes;
     turbulence      yes;
     
+    // https://www.openfoam.com/news/main-news/openfoam-v2412/solvers-and-physics
     SpalartAllmarasDDESCoeffs
     {
         shielding     ZDES2020;

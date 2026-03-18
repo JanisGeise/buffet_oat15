@@ -15,8 +15,15 @@ FoamFile
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-numberOfSubdomains  8;
+numberOfSubdomains  520;
 
-method          scotch;
+// for some reason when using scotch decomposition works but rhoPimpleFoam crashes with error scotch not found... doesn't make sense
+method          simple;
+
+simpleCoeffs
+{
+    n (13 5 8);
+}
+
 
 // ************************************************************************* //

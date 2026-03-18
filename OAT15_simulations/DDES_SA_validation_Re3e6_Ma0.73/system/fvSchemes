@@ -22,23 +22,27 @@ ddtSchemes
 gradSchemes
 {
     default         Gauss linear;
-    /*
-    limited         cellLimited Gauss linear 0.5;
-    grad(U)         $limited;
-    grad(p)         $limited;
-    grad(e)         $limited;
-    grad(nuTilda)   $limited;
-    grad(K)         $limited;
-    grad(k)         $limited;
-    grad(omega)     $limited;
-    */
 }
 
 divSchemes
 {
     default         none;
 
-    div(phi,U)      Gauss limitedLinear 1;
+    // div(phi,U)      Gauss limitedLinear 1;
+
+    // https://gitlab.com/openfoam/core/openfoam/-/blob/master/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes?ref_type=heads
+    // https://www.openfoam.com/news/main-news/openfoam-v2212/numerics#deshybrid
+    div(phi,U)                          Gauss DEShybrid
+        linear                        // scheme 1
+        linearUpwind grad(U)          // scheme 2
+        delta                         // LES delta name, e.g. 'delta', 'hmax'
+        0.65                          // CDES coefficient
+        1.0                           // Reference velocity scale
+        1.0                           // Reference length scale
+        0.0                           // Minimum sigma limit (0-1)
+        1.0                           // Maximum sigma limit (0-1)
+        1.0                           // Limiter of B function
+        10.0;                         // nut limiter (if > 1, GAM extension is active)
 
     energy          Gauss limitedLinear 1;
     div(phi,e)      $energy;
@@ -73,7 +77,9 @@ snGradSchemes
 
 wallDist
 {
-    method meshWave;
+    // https://gitlab.com/openfoam/core/openfoam/-/blob/master/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes?ref_type=heads
+    method          exactDistance;
+    nRequired       yes;
 }
 
 // ************************************************************************* //

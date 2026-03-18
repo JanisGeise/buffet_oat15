@@ -64,7 +64,7 @@ class BlockMeshGenerator:
 
         # set default distances
         if projection_distance is None:
-            projection_distance = [0.01, 1.5, 2.5, 50]
+            projection_distance = [0.01, 0.85, 1.5, 50]
         else:
             # make sure the distances are in ascending order
             projection_distance = sorted(projection_distance)
@@ -89,7 +89,7 @@ class BlockMeshGenerator:
         self._yPlus_target = yPlus_target
 
         # number of cells in spanwise direction
-        self._nz =n_cells_z
+        self._nz = n_cells_z
 
         # airfoil properties
         self._ss = None
@@ -488,7 +488,7 @@ class BlockMeshGenerator:
         # now get the gradient of the last point to continue the block with the same curvature, orient on SS since more
         # important
         _grad_ss = (self._ss[0, 1] - self._ss[1, 1]) / (self._ss[0, 0] - self._ss[1, 0])
-        _grad_ps = (self._ps[-1, 1] - self._ps[-2, 1]) / (self._ps[-1, 0] - self._ps[-2, 0])
+        # _grad_ps = (self._ps[-1, 1] - self._ps[-2, 1]) / (self._ps[-1, 0] - self._ps[-2, 0])
 
         # block 4 at TE
         # move the nodes by the same distance in y at TE as we did on the airfoil's surface
@@ -503,10 +503,10 @@ class BlockMeshGenerator:
                                         pt.tensor(self._y_bound[1]).unsqueeze(-1)], dim=-1)
         self._all_nodes["31"] = deepcopy(self._all_nodes["17"])
         self._all_nodes["31"][0] += self._distance_projection[0] * self._chord
-        self._all_nodes["31"][1] += self._distance_projection[0] * self._chord * _grad_ss     # absicht!
+        self._all_nodes["31"][1] += self._distance_projection[0] * self._chord * _grad_ss * 0.6    # absicht!
         self._all_nodes["32"] = deepcopy(self._all_nodes["12"])
         self._all_nodes["32"][0] += self._distance_projection[0] * self._chord
-        self._all_nodes["32"][1] -= self._distance_projection[0] * self._chord * _grad_ss     # absicht!
+        self._all_nodes["32"][1] -= self._distance_projection[0] * self._chord * _grad_ss * 0.6     # absicht!
 
         # block 5+
         self._all_nodes["33"] = pt.cat([self._ss[0, 0].unsqueeze(-1), y_pos_TE_SS.unsqueeze(-1),
@@ -532,7 +532,7 @@ class BlockMeshGenerator:
         self._all_nodes["38"][1] += diff * self._chord * _grad_ss     # intentional!
         self._all_nodes["39"] = deepcopy(self._all_nodes["32"])
         self._all_nodes["39"][0] += diff * self._chord
-        self._all_nodes["39"][1] -= diff * self._chord * _grad_ss     # intentional!
+        self._all_nodes["39"][1] -= diff * self._chord * _grad_ss * 1.5     # intentional!
         self._create_back_nodes(40, 2)
 
         # add slight arc to left edge to improve the mesh TODO: rename all arcs for easier assignment
@@ -547,7 +547,7 @@ class BlockMeshGenerator:
         # arcs for block 6 projection
         y6 = (self._all_nodes["26"][1] + self._all_nodes["39"][1]) / 2
         x6 = self._distance_projection[1] * self._chord + self._ss[-1, 0] + self._chord
-        self._all_arcs["block6plus"] = [x6 * 0.88, y6]
+        self._all_arcs["block6plus"] = [x6 * 0.89, y6 * 1.03]
 
         y6 = (self._all_nodes["28"][1] + self._all_nodes["38"][1]) / 2
         x6 = self._distance_projection[1] * self._chord + self._ps[0, 0] + self._chord
@@ -608,18 +608,18 @@ class BlockMeshGenerator:
         self._all_nodes["62"] = deepcopy(self._all_nodes["39"])
         self._all_nodes["63"] = deepcopy(self._all_nodes["39"])
         self._all_nodes["63"][0] += diff * self._chord
-        self._all_nodes["63"][1] -= diff * self._chord * _grad_ss     # absicht!
+        self._all_nodes["63"][1] -= diff * self._chord * _grad_ss * 1.5     # absicht!
         self._create_back_nodes(64, 2)
         self._all_arcs["block10plus"] = self._all_arcs["block6plus"] # no deepcopy here to ensure it's the same
 
         y10 = (self._all_nodes["55"][2] + self._all_nodes["63"][1]) / 2
         x10 = self._distance_projection[2] * self._chord + self._ss[-1, 0] + self._chord
-        self._all_arcs["block10plusProj"] = [x10 * 1.02, y10]
+        self._all_arcs["block10plusProj"] = [x10 * 1.02, y10 * 1.02]
 
         # block 10-
         self._all_nodes["66"] = deepcopy(self._all_nodes["38"])
         self._all_nodes["66"][0] += diff * self._chord
-        self._all_nodes["66"][1] += diff * self._chord * _grad_ss     # absicht!
+        self._all_nodes["66"][1] += diff * self._chord * _grad_ss    # absicht!
         self._all_nodes["67"] = deepcopy(self._all_nodes["38"])
         self._create_back_nodes(68, 2)
         self._all_arcs["block10minus"] = self._all_arcs["block6minus"] # no deepcopy here to ensure it's the same
@@ -682,13 +682,13 @@ class BlockMeshGenerator:
         self._all_nodes["90"] = deepcopy(self._all_nodes["63"])
         self._all_nodes["91"] = deepcopy(self._all_nodes["63"])
         self._all_nodes["91"][0] += diff * self._chord
-        self._all_nodes["91"][1] -= diff * self._chord * _grad_ss     # absicht!
+        self._all_nodes["91"][1] -= diff * self._chord * _grad_ss * 1.5     # absicht!
         self._create_back_nodes(92, 2)
         self._all_arcs["block14plus"] = self._all_arcs["block10plusProj"] # no deepcopy here to ensure it's the same
 
         y14 = (self._all_nodes["83"][2] + self._all_nodes["91"][1]) / 2
         x14 = self._distance_projection[3] * self._chord + self._ss[-1, 0] + self._chord
-        self._all_arcs["block14plusProj"] = [x14 * 1.02, y14]
+        self._all_arcs["block14plusProj"] = [x14 * 1.04, y14 * 1.04]
 
         # block 14-
         self._all_nodes["94"] = deepcopy(self._all_nodes["66"])
@@ -708,7 +708,7 @@ class BlockMeshGenerator:
 
         y15 = (self._all_nodes["91"][1] + self._all_nodes["95"][1]) / 2
         x15 = (self._distance_projection[3]) * self._chord + self._ss[-1, 0] + self._chord
-        self._all_arcs["block15proj"] = [x15*1.02, y15]
+        self._all_arcs["block15proj"] = [x15*1.03, y15]
 
     def _interpolate_arc_point(self, curve: pt.Tensor, idx: int, te_node_key: str, x_ref: float, key: str,
                                scale_x: float = 1.0) -> None:
@@ -805,8 +805,8 @@ class BlockMeshGenerator:
         gy = [f"{g:{self._dec}}" for g in self._grading_normal]
 
         # multigrading for shock SS, PS and wake
-        mg_ss = "((0.3 0.25 -2) (0.25 0.3 1) (0.3 0.325 1.2) (0.05 0.125 -5))"
-        mg_ps = "((0.1 0.1 1.25) (0.8 0.7 1) (0.1 0.2 -4))"
+        mg_ss = "((0.3 0.25 -2) (0.25 0.3 1) (0.3 0.325 1.2) (0.05 0.125 -6))"
+        mg_ps = "((0.1 0.1 1.25) (0.8 0.7 1) (0.1 0.2 -6))"
         mg_w = "((0.5 0.5 1.2) (0.5 0.5 -1.2))"
 
         # keywords for grading and block type
@@ -819,10 +819,11 @@ class BlockMeshGenerator:
         ny_w = 20
 
         # gradings for block 5+ and 5-, 6+ and 6- (1st projection)
-        gx5_6 = 1
+        gx5_6_plus = 1
+        gx5_6_minus = -3
 
         # gradings for block 8+ and 8-, 10+ and 10- (2nd projection)
-        gx8, gx10 = 3, 1
+        gx8, gx10_plus = 3, 1
 
         # gradings for block 12+ and 12-, 14+ and 14- (3rd projection)
         gx12, gx14 = 3, 1
@@ -864,13 +865,13 @@ class BlockMeshGenerator:
                  # block 4      (8)
                  f"{bt} (30 31 32 33 34 35 36 37) ({ny[0]} {ny_w} {nz}) {sg} ({gy[0]} {mg_w} {gz})",
                  # block 5+     (9)
-                 f"{bt} (12 33 32 13 14 37 36 15) ({nx_5_6} {ny[0]} {nz}) {sg} ({gx5_6} {gy[0]} {gz})",
+                 f"{bt} (12 33 32 13 14 37 36 15) ({nx_5_6} {ny[0]} {nz}) {sg} ({gx5_6_plus} {gy[0]} {gz})",
                  # block 5-     (10)
-                 f"{bt} (16 31 30 17 18 35 34 19) ({nx_5_6} {ny[0]} {nz}) {sg} ({gx5_6} -{gy[0]} {gz})",
+                 f"{bt} (16 31 30 17 18 35 34 19) ({nx_5_6} {ny[0]} {nz}) {sg} ({gx5_6_minus} -{gy[0]} {gz})",
                  # block 6+     (11)
-                 f"{bt} (13 32 39 26 15 36 41 27) ({nx_5_6} {ny[1]} {nz}) {sg} ({gx5_6} {gy[1]} {gz})",
+                 f"{bt} (13 32 39 26 15 36 41 27) ({nx_5_6} {ny[1]} {nz}) {sg} ({gx5_6_plus} {gy[1]} {gz})",
                  # block 6-     (12)
-                 f"{bt} (28 38 31 16 29 40 35 18) ({nx_5_6} {ny[1]} {nz}) {sg} ({gx5_6} -{gy[1]} {gz})",
+                 f"{bt} (28 38 31 16 29 40 35 18) ({nx_5_6} {ny[1]} {nz}) {sg} ({gx5_6_minus} -{gy[1]} {gz})",
                  # block 7      (13)
                  f"{bt} (31 38 39 32 35 40 41 36) ({ny[1]} {ny_w} {nz}) {sg} ({gy[1]} {mg_w} {gz})",
                  # block 8+     (14)
@@ -882,9 +883,9 @@ class BlockMeshGenerator:
                  # block 9-     (17)
                  f"{bt} (50 58 59 51 52 60 61 53) ({nx9m} {ny[2]} {nz}) {sg} ({mg_ps} -{gy[2]} {gz})",
                  # block 10+    (18)
-                 f"{bt} (54 62 63 55 56 64 65 57) ({nx_10_14} {ny[2]} {nz}) {sg} ({gx10} {gy[2]} {gz})",
+                 f"{bt} (54 62 63 55 56 64 65 57) ({nx_10_14} {ny[2]} {nz}) {sg} ({gx10_plus} {gy[2]} {gz})",
                  # block 10-    (19)
-                 f"{bt} (58 66 67 59 60 68 69 61) ({nx_10_14} {ny[2]} {nz}) {sg} ({gx10} -{gy[2]} {gz})",
+                 f"{bt} (58 66 67 59 60 68 69 61) ({nx_10_14} {ny[2]} {nz}) {sg} ({gx5_6_minus} -{gy[2]} {gz})",
                  # block 11     (20)
                  f"{bt} (67 66 63 62 69 68 65 64) ({ny[2]} {ny_w} {nz}) {sg} ({gy[2]} {mg_w} {gz})",
                  # block 12+    (21)
@@ -898,9 +899,9 @@ class BlockMeshGenerator:
                  # block 14+    (25)
                  f"{bt} (82 90 91 83 84 92 93 85) ({nx_10_14} {ny[3]} {nz}) {sg} ({gx14} {gy[3]} {gz})",
                  # block 14-    (26)
-                 f"{bt} (86 95 94 87 88 97 96 89) ({nx_10_14} {ny[3]} {nz}) {sg} ({gx14} -{gy[3]} {gz})",
+                 f"{bt} (86 95 94 87 88 97 96 89) ({nx_10_14} {ny[3]} {nz}) {sg} ({gx5_6_minus} -{gy[3]} {gz})",
                   # block 15    (27)
-                 f"{bt} (90 94 95 91 92 96 97 93) ({ny_w//2} {ny[3]} {nz}) {sg} ({mg_w} {gy[3]} {gz})"]
+                 f"{bt} (90 94 95 91 92 96 97 93) ({ny_w} {ny[3]} {nz}) {sg} ({mg_w} {gy[3]} {gz})"]
 
         # add node numbers for easier debugging
         blocks = [l + f"\t// {i}" for i, l in enumerate(blocks)]

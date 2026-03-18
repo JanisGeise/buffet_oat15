@@ -32,12 +32,12 @@ boundaryField
         value           uniform 0;
     }
 
-    front
+    Front
     {
         type            cyclic;
     }
 
-    back
+    Back
     {
         type            cyclic;
     }

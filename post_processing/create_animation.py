@@ -13,40 +13,62 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter
 
 from utils import load_force_coeffs
 
-def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma") -> None:
+def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma", dims = None, y_max = -0.25,
+                 n_dims : int = 2) -> None:
+    if dims is None:
+        dims = [0, 2]
+
     # prepare the forces
     forces = load_force_coeffs(load_path)
-    forces = forces[["t", "cy"]]
-    pt.save(forces, join(save_dir, "forces.pt"))
+    pt.save(forces[["t", "cy"]], join(save_dir, "forces.pt"))
     del forces
 
     # load the snapshots, we only have 2D data (URANS)
     loader = FOAMDataloader(load_path)
-    xz = loader.vertices[:, [0, 2]]
-    write_times = loader.write_times[1:]
-    mask = mask_box(xz, lower=bounds[0], upper=bounds[1])
+
+    # mask the coordinates
+    _coord = loader.vertices
+
+    # apply the mask
+    mask = mask_box(_coord, lower=bounds[0], upper=bounds[1])
 
     # mask the vertices
-    xz = pt.stack([pt.masked_select(xz[:, d], mask) for d in range(2)], dim=1)
-    data = pt.zeros((xz.shape[0], len(write_times)))
+    _coord = pt.stack([pt.masked_select(_coord[:, d], mask) for d in range(3)], dim=1)
+
+    # check if we have multiple cells in spanwise direction
+    if n_dims == 2:
+        _coord = loader.vertices[:, dims]
+        _idx = pt.ones(_coord.shape[0],).bool()
+    else:
+        # if so, extract a slice from the middle of the domain
+        _idx = pt.isclose(_coord[:, 1], pt.tensor(y_max)/2)
+        _coord = _coord[_idx, :][:, dims]
+
+    # take all available write times except zero
+    _write_times = loader.write_times[1:]
+
+    _data = pt.zeros((_coord.shape[0], len(_write_times)))
 
     # load the data
-    for i, t in enumerate(write_times):
-        data[:, i] = pt.masked_select(loader.load_snapshot(field_name, t), mask)
+    for i, t in enumerate(_write_times):
+        _data[:, i] = pt.masked_select(loader.load_snapshot(field_name, t), mask)[_idx]
 
     # save everything
-    pt.save({field_name: data, "write_times": write_times, "xz": xz}, join(save_path, f"{field_name}_fields.pt"))
+    pt.save({field_name: _data, "write_times": _write_times, "xz": _coord}, join(save_path, f"{field_name}_fields.pt"))
 
 
 if __name__ == '__main__':
+    # TODO: check if 2D still works
     # load and save paths
-    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "URANS_2D_Ma0.73_Re3e6")
-    save_dir = join("..", "run", "plots", "URANS_validation", "URANS_blockMesh", "SALSA", "animations")
-    case = r"URANS_SALSA_alpha3.5deg_blockMesh_useRmod_useSmod"
+    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
+    save_dir = join("..", "run", "plots", "DDES_validation")
+    case = r"DDES_SA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
 
     # settings
     prepare = False
-    bounds = [[-0.25, -0.25], [5, 2]]
+    y_max = -0.25
+    n_dims = 3
+    bounds = [[-0.25, -1, -0.25], [5, 1, 2]]
 
     # flow conditions
     chord = 1
@@ -59,7 +81,7 @@ if __name__ == '__main__':
 
     # load and prepare daa once
     if prepare:
-        prepare_data(join(load_dir, case), bounds, save_dir)
+        prepare_data(join(load_dir, case), bounds, save_dir, y_max=y_max, n_dims=n_dims)
         exit()
     else:
         forces = pt.load(join(save_dir, "forces.pt"), weights_only=False)
