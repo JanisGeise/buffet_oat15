@@ -13,7 +13,7 @@ from matplotlib.animation import FuncAnimation, FFMpegWriter
 
 from utils import load_force_coeffs
 
-def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma", dims = None, y_max = -0.25,
+def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma", dims = None, y_max = -0.0375,
                  n_dims : int = 2) -> None:
     if dims is None:
         dims = [0, 2]
@@ -23,7 +23,7 @@ def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma
     pt.save(forces[["t", "cy"]], join(save_dir, "forces.pt"))
     del forces
 
-    # load the snapshots, we only have 2D data (URANS)
+    # load the snapshots of the volume data
     loader = FOAMDataloader(load_path)
 
     # mask the coordinates
@@ -58,7 +58,6 @@ def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma
 
 
 if __name__ == '__main__':
-    # TODO: check if 2D still works
     # load and save paths
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
     save_dir = join("..", "run", "plots", "DDES_validation")

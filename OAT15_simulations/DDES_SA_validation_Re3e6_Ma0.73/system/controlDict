@@ -136,7 +136,7 @@ functions
     {
         type            surfaces;
         libs            (sampling);
-        timeStart       0.06;
+        timeStart       0.1;
         executeControl  writeTime;
         executeInterval 1;
         writeControl    writeTime;
@@ -172,6 +172,30 @@ functions
                 normal  (0 1 0);
             }
         }
+    }
+
+    Q
+    {
+        // Mandatory entries (unmodifiable)
+        type            Q;
+        libs            (fieldFunctionObjects);
+        timeStart       0.1;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
+
+    Lambda2
+    {
+        type            Lambda2;
+        libs            (fieldFunctionObjects);
+
+        timeStart       0.1;
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
     }
 
     yPlus

@@ -90,9 +90,6 @@ if __name__ == "__main__":
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
     save_dir = join("..", "run", "plots", "DDES_validation")
     case = r"DDES_SA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
-    # load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "URANS_3D_Ma0.73_Re3e6")
-    # save_dir = join("..", "run", "plots", "DDES_URANS_validation_comparison_alpha_3.5deg")
-    # case = r"URANS_SA_precursor_for_DDES"
 
     # flow properties
     mu = 7.7319e-05
@@ -101,7 +98,7 @@ if __name__ == "__main__":
 
     # simulation setup
     chord = 1
-    ny = 70
+    ny = 65
     y_max = 0.25
 
     # load the surface data
