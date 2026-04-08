@@ -1,0 +1,89 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+
+    // div(phi,U)      Gauss limitedLinear 1;
+
+    // https://gitlab.com/openfoam/core/openfoam/-/blob/master/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes?ref_type=heads
+    // https://www.openfoam.com/news/main-news/openfoam-v2212/numerics#deshybrid
+    div(phi,U)                          Gauss DEShybrid
+        linear                        // scheme 1
+        linearUpwind grad(U)          // scheme 2
+        delta                         // LES delta name, e.g. 'delta', 'hmax'
+        0.65                          // CDES coefficient
+        1.0                           // Reference velocity scale
+        1.0                           // Reference length scale
+        0.0                           // Minimum sigma limit (0-1)
+        1.0                           // Maximum sigma limit (0-1)
+        1.0                           // Limiter of B function
+        10.0;                         // nut limiter (if > 1, GAM extension is active)
+
+    energy          Gauss limitedLinear 1;
+    div(phi,e)      $energy;
+    div(phi,K)      $energy;
+    div(phi,Ekp)    $energy;
+
+    turbulence       Gauss limitedLinear 1;
+    div(phi,nuTilda) $turbulence;
+    div(phi,k)       $turbulence;
+    div(phi,omega)   $turbulence;
+
+    div(phiv,p)     Gauss limitedLinear 1;
+    div(phid,p)     Gauss limitedLinear 1;
+
+    div(((rho*nuEff)*dev2(T(grad(U)))))    Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    /*
+    // scotch not supported as decomposition method
+    // https://gitlab.com/openfoam/core/openfoam/-/blob/master/tutorials/incompressible/pimpleFoam/LES/wallMountedHump/setups.orig/common/system/fvSchemes?ref_type=heads
+    method          exactDistance;
+    nRequired       yes;
+    */
+    method  meshWave;
+}
+
+// ************************************************************************* //

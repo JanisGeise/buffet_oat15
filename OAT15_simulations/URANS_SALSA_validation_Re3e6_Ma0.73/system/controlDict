@@ -148,6 +148,14 @@ functions
         surfaceFormat   raw;
         fields          (total(p)_coeff yPlus p rho T wallShearStress);
 
+        formatOptions
+        {
+            raw
+            {
+                normal true;
+            }
+        }
+
         surfaces
         {
             airfoil
@@ -199,6 +207,15 @@ functions
                 }
             );
         }
+    Co
+    {
+        type            CourantNo;
+        libs            (fieldFunctionObjects);
+        executeControl  writeTime;
+        executeInterval 1;
+        writeControl    writeTime;
+        writeInterval   1;
+    }
    
     solverInfo
     {

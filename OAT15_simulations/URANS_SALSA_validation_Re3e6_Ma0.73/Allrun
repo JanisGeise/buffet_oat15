@@ -17,5 +17,11 @@ runParallel renumberMesh -overwrite
 # execute flow solver
 runParallel "$(getApplication)"
 
+# compute the cell centers and volumes
+runParallel postProcess -func "writeCellCentres" -constant -time none
+mv log.postProcess log.postProcess.writeCellCentres
+runParallel postProcess -func "writeCellVolumes" -constant -time none
+mv log.postProcess log.postProcess.writeCellVolumes
+
 
 

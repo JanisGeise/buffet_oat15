@@ -112,12 +112,13 @@ def get_pimple_iterations(load_path: str) -> Tuple[list, list]:
 def compute_norm_of_fields(load_path: str, time_boundaries: list = None,
                            field: str = "UMean") -> Tuple[pt.Tensor, list]:
     """
-    TODO: doku
+    Compute the L2 norm of a volume field for a given number of write times.
+    The L2 norms are scaled with the L2 norm of the first field.
 
-    :param load_path:
-    :param time_boundaries:
-    :param field:
-    :return:
+    :param load_path: path to the simulation
+    :param time_boundaries: min. / max. write times for computing the L2 norm
+    :param field: Name of the field
+    :return: write times and norms of fields.
     """
     print(f"Starting with case: {load_path}.")
     loader = FOAMDataloader(load_path)
