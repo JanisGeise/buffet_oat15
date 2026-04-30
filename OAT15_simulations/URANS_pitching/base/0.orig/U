@@ -1,0 +1,72 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+// taken from https://develop.openfoam.com/Development/openfoam/-/blob/OpenFOAM-v2412/tutorials/incompressible/pimpleFoam/LES/NACA4412/0.orig/U
+Uinlet          242.16629;    // free stream velocity
+alpha0          3.5;        // mean angle of attack
+
+Ux              #eval{$Uinlet * cos(degToRad($alpha0)) };
+Uz              #eval{$Uinlet * sin(degToRad($alpha0)) };
+
+Uinfinity         ($Ux 0.0 $Uz);
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform $Uinfinity;
+
+boundaryField
+{
+    inlet_outlet
+    {
+        type            exprFixedValue;
+        value           $internalField;
+
+        // works only if the variables are defined in this scope so let's just re-define everything
+        Uinlet          242.16629;    // free stream velocity
+        alpha0          3.5;         // mean angle of attack
+
+        // pitching, since base case -> amplitude = 0
+        frequency       0;        // pitching frequency
+        amplitude       0;        // amplitude [deg]
+        phase           0;        // phase
+
+        // velocity components
+        Ux              #eval{$Uinlet * cos(degToRad($alpha0)) };
+        Uz              #eval{$Uinlet * sin(degToRad($alpha0)) };
+
+        // periodically variying inflow AoA
+        valueExpr "$Uinlet * vector( cos(degToRad($alpha0 + $amplitude*sin(2*pi()*$frequency*time() - degToRad($phase)))), 0, sin(degToRad($alpha0 + $amplitude*sin(2*pi()*$frequency*time() - degToRad($phase)))) )";
+
+    }
+
+    airfoil
+    {
+        type            noSlip;
+    }
+
+    front
+    {
+        type            empty;
+    }
+
+    back
+    {
+        type            empty;
+    }
+}
+
+// ************************************************************************* //

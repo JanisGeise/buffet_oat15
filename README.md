@@ -22,7 +22,7 @@ to the `blockMeshGenerator` in case the coordinates are sorted as *TE -> LE via 
 2. run the meshing tool to generate a `blockMeshDict`
 3. execute the simulation via the `Allrun` script
 
-**Note:** To achieve buffet, the *SA-SALSA* turbulence model is required. Since this model is not directly available in 
+**Note:** To achieve buffet, the *SALSA* turbulence model is required. Since this model is not directly available in 
 `OpenFOAM` as of now, it has to be compiled from [here](https://github.com/JanisGeise/OF_SA_SALSA).
 
 ## Validation
@@ -33,10 +33,10 @@ as `csv` files in the directory `validation_exp_data`. The corresponding numeric
 
 - $Re = 3\cdot 10^6$
 - $Ma_\infty = 0.73$
-- $U_\infty = 242.16629 \, m/s$
-- $c = 1 \,m$
+- $U_\infty = 242.16629$ $m/s$
+- $c = 1$ $m$
 - $\alpha = 2.5^\circ, 3.5^\circ$
-- $t_\mathrm{end} = 1 \,s (\approx 242 \, \mathrm{CTU})$
+- $t_\mathrm{end} = 1$ $s~(\approx 242$  $\mathrm{CTU})$
 
 ## Visualization of the results
 
