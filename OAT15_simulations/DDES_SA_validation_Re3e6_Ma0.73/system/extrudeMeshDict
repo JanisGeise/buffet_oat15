@@ -24,7 +24,7 @@ flipNormals true;
 
 extrudeModel        linearNormal;
 
-nLayers         5;
+nLayers         65;
 
 linearNormalCoeffs
 {
