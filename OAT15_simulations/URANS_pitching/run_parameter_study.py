@@ -164,7 +164,7 @@ source $FOAM_BASH
     with open(join(target, "jobscript"), "w") as f_out:
         f_out.writelines(_msg)
 
-def write_shellscript(all_cases: list, target: str = ".") -> None:
+def write_shellscript(all_cases: list, target: str = ".", execution: str = "slurm") -> None:
     """
     write a final shell script which loops over all simulation directories defined and submits the jobscript
 
@@ -172,13 +172,18 @@ def write_shellscript(all_cases: list, target: str = ".") -> None:
     :type all_cases: list
     :param target: target directory to write the shell script to, defaults to cwd
     :type target: str
+    :param execution: system used for execution, either 'slurm' or 'local', defaults to 'slurm'
+    ::type execution: str
     :return: None
     """
     _msg = ["#!/bin/bash\n\n"]
 
     # loop over all directories and submit the jobscript
     for d in all_cases:
-        _msg.append(f"cd '{d}/'\nsbatch jobscript\ncd ..\n\n")
+        if execution.lower() == "slurm":
+            _msg.append(f"cd '{d}/'\nsbatch jobscript\ncd ..\n\n")
+        else:
+            _msg.append(f"cd '{d}/'\n./Allrun\ncd ..\n\n")
 
     # write script
     with open(join(target, "submit_all"), "w") as f_out:
@@ -201,6 +206,7 @@ def get_last_write_time(base: str) -> float:
 if __name__ == "__main__":
     # path to the base case
     BASE_DIR = "base"
+    SLURM = True
 
     # which amplitudes to run, here 0.25 and 0.50 times the mean cl (without pitching)
     amplitudes = [0.875, 1.75]
@@ -240,9 +246,10 @@ if __name__ == "__main__":
                 last_write_time = get_last_write_time(BASE_DIR)
                 relace_all_inlet_conditions(_cwd, a, f, finish_time=last_write_time)
 
-                # write a jobscript
-                write_jobscript(_cwd, a, f)
+                # write a jobscript if we are on an HPC system
+                if SLURM:
+                    write_jobscript(_cwd, a, f)
 
     # write a shell script, which loops over all simulation directories and submits the jobscript
-    write_shellscript(all_dirs)
+    write_shellscript(all_dirs, execution="slurm" if SLURM else "local")
     logger.info(f"All cases created. Now run '$ . submit_all' run the simulations.")

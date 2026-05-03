@@ -69,13 +69,13 @@ def compute_fft(data: np.ndarray, dt: Union[float, int]) -> Tuple[np.ndarray, np
     return _f, _a
 
 
-def interpolate_uniform(t: np.ndarray, data: np.ndarray):
+def interpolate_uniform(t: np.ndarray, data: np.ndarray, dt: float=1e-6):
     # get start and end time
     t_start, t_end = t[0], t[-1]
 
     # use standard interpolation to get values at const. dt
     _interpolator = interp1d(t, data, fill_value="extrapolate")
-    dt = float("{:.1e}".format(t[-1] - t[-2]))
+    # dt = float("{:.1e}".format(t[-1] - t[-2]))
 
     t_new = np.arange(start=t_start + dt, stop=t_end, step=dt)
     return t_new, _interpolator(t_new)
