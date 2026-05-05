@@ -207,6 +207,7 @@ if __name__ == "__main__":
     # path to the base case
     BASE_DIR = "base"
     SLURM = True
+    tend = 2
 
     # which amplitudes to run, here 0.25 and 0.50 times the mean cl (without pitching)
     amplitudes = [0.875, 1.75]
@@ -239,7 +240,7 @@ if __name__ == "__main__":
                 cleanCopy(_cwd)
 
                 # update the endTime of the simulation
-                modify_controlDict(_cwd)
+                modify_controlDict(_cwd, t_end=tend)
 
                 # loop over all processor directories and insert the correct amplitude and frequency in the inlet
                 # boundary condition for the velocity field of the last write time
@@ -249,6 +250,8 @@ if __name__ == "__main__":
                 # write a jobscript if we are on an HPC system
                 if SLURM:
                     write_jobscript(_cwd, a, f)
+            else:
+                logger.info(f"Skipping case {_cwd} since it already exists.")
 
     # write a shell script, which loops over all simulation directories and submits the jobscript
     write_shellscript(all_dirs, execution="slurm" if SLURM else "local")

@@ -48,7 +48,7 @@ boundaryField
         Ux              #eval{$Uinlet * cos(degToRad($alpha0)) };
         Uz              #eval{$Uinlet * sin(degToRad($alpha0)) };
 
-        // periodically variying inflow AoA
+        // periodically varying inflow AoA
         valueExpr "$Uinlet * vector( cos(degToRad($alpha0 + $amplitude*sin(2*pi()*$frequency*time() - degToRad($phase)))), 0, sin(degToRad($alpha0 + $amplitude*sin(2*pi()*$frequency*time() - degToRad($phase)))) )";
 
     }
