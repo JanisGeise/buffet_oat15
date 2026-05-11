@@ -209,12 +209,12 @@ if __name__ == "__main__":
     SLURM = True
     tend = 2
 
-    # which amplitudes to run, here 0.25 and 0.50 times the mean cl (without pitching)
-    amplitudes = [0.875, 1.75]
+    # which amplitudes to run, here 0.25, 0.35 and 0.50 times the mean cl (without pitching)
+    amplitudes = [0.875, 1.225, 1.75]
 
-    # which frequencies to run, here: from 0.25 f_buffet to 2 f_buffet in 0.5 Hz spacing
-    frequencies = list(range(4, 31))
-    frequencies += [i + 0.5 for i in range(4, 31)][:-1]
+    # which frequencies to run, here: from 0.75 f_buffet to 1.25 f_buffet in 0.5 Hz spacing
+    frequencies = list(range(10, 21))
+    frequencies += [i + 0.5 for i in range(10, 22)]
     frequencies = sorted(frequencies)
 
     # check if we executed the base case, if not exit

@@ -10,21 +10,13 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      turbulenceProperties;
+    location    "system";
+    object      decomposeParDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
+numberOfSubdomains  8;
 
-RAS
-{
-    RASModel            SpalartAllmarasSALSA;
-    turbulence          on;
-    printCoeffs         on;
-
-    rhoInf              0.957837;   // required for useRmod = true
-    useRmod             true;       // Edward's modification
-    useSmod             true;      // strain rate instead of vorticity for Stilda
-}
+method          scotch;
 
 // ************************************************************************* //

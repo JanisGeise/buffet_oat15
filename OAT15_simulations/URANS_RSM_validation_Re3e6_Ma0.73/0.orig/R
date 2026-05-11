@@ -1,7 +1,7 @@
 /*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
-|  \\    /   O peration     | Version:  v2412                                 |
+|  \\    /   O peration     | Version:  v2006                                 |
 |   \\  /    A nd           | Website:  www.openfoam.com                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
@@ -9,22 +9,40 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      turbulenceProperties;
+    class       volSymmTensorField;
+    object      R;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
+dimensions      [0 2 -2 0 0 0 0];
 
-RAS
+Rinlet          (5.75 0 0 5.75 0 5.75);
+
+internalField   uniform $Rinlet;
+
+boundaryField
 {
-    RASModel            SpalartAllmarasSALSA;
-    turbulence          on;
-    printCoeffs         on;
+    inlet_outlet
+    {
+        type            freestream;
+        freestreamValue $internalField;
+    }
 
-    rhoInf              0.957837;   // required for useRmod = true
-    useRmod             true;       // Edward's modification
-    useSmod             true;      // strain rate instead of vorticity for Stilda
+    airfoil
+    {
+        type            kqRWallFunction;
+        value           uniform (0 0 0 0 0 0);
+    }
+
+    front
+    {
+        type empty;
+    }
+
+    back
+    {
+        type empty;
+    }
 }
 
 // ************************************************************************* //

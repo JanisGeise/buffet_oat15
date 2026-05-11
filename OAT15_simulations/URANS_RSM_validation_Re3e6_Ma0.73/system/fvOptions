@@ -10,21 +10,16 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      turbulenceProperties;
+    object      fvOptions;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
-
-RAS
+limitT
 {
-    RASModel            SpalartAllmarasSALSA;
-    turbulence          on;
-    printCoeffs         on;
-
-    rhoInf              0.957837;   // required for useRmod = true
-    useRmod             true;       // Edward's modification
-    useSmod             true;      // strain rate instead of vorticity for Stilda
+    type       limitTemperature;
+    min        150;
+    max        350;
+    selectionMode all;
 }
 
-// ************************************************************************* //
+//************************************************************************** //

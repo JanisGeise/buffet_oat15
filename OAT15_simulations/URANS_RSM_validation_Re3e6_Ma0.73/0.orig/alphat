@@ -9,22 +9,38 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       dictionary;
-    object      turbulenceProperties;
+    class       volScalarField;
+    object      alphat;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
+dimensions      [1 -1 -1 0 0 0 0];
 
-RAS
+internalField   uniform 0;
+
+boundaryField
 {
-    RASModel            SpalartAllmarasSALSA;
-    turbulence          on;
-    printCoeffs         on;
+    inlet_outlet
+    {
+        type            calculated;
+        value           uniform 0;
+    }
 
-    rhoInf              0.957837;   // required for useRmod = true
-    useRmod             true;       // Edward's modification
-    useSmod             true;      // strain rate instead of vorticity for Stilda
+    airfoil
+    {
+        type            compressible::alphatWallFunction;
+        value           uniform 0;
+    }
+
+    front
+    {
+        type            empty;
+    }
+
+    back
+    {
+        type            empty;
+    }
 }
 
 // ************************************************************************* //

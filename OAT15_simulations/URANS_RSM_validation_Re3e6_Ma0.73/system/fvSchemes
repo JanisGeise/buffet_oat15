@@ -1,0 +1,86 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         backward;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+    /*
+    limited         cellLimited Gauss linear 0.5;
+    grad(U)         $limited;
+    grad(p)         $limited;
+    grad(e)         $limited;
+    grad(nuTilda)   $limited;
+    grad(K)         $limited;
+    grad(k)         $limited;
+    grad(omega)     $limited;
+    */
+}
+
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      Gauss limitedLinear 1;
+
+    energy          Gauss limitedLinear 1;
+    div(phi,e)      $energy;
+    div(phi,K)      $energy;
+    div(phi,Ekp)    $energy;
+
+    turbulence       Gauss limitedLinear 1;
+    div(phi,nuTilda) $turbulence;
+    div(phi,k)       $turbulence;
+    div(phi,omega)   $turbulence;
+    // div(phi,epsilon)   $turbulence;
+    // div(phi,R)   $turbulence;
+
+    div(phiv,p)     Gauss limitedLinear 1;
+    div(phid,p)     Gauss limitedLinear 1;
+
+    div(((rho*nuEff)*dev2(T(grad(U)))))    Gauss linear;
+
+    // div(devRhoReff)      Gauss linear;  // LRR specific
+    // div((rho*R))    Gauss linear;
+    div(((rho*nuEff)*dev2(T(grad(U)))))    Gauss linear;
+    //div(((rho*(thermo:mu|rho))*dev2(T(grad(U)))))    Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+wallDist
+{
+    method meshWave;
+}
+
+// ************************************************************************* //

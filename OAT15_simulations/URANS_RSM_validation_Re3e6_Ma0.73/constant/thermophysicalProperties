@@ -10,21 +10,38 @@ FoamFile
     version     2.0;
     format      ascii;
     class       dictionary;
-    object      turbulenceProperties;
+    location    "constant";
+    object      thermophysicalProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-simulationType  RAS;
-
-RAS
+thermoType
 {
-    RASModel            SpalartAllmarasSALSA;
-    turbulence          on;
-    printCoeffs         on;
+    type            hePsiThermo;
+    mixture         pureMixture;
+    transport       const;
+    thermo          hConst;
+    equationOfState perfectGas;
+    specie          specie;
+    energy          sensibleInternalEnergy;
+}
 
-    rhoInf              0.957837;   // required for useRmod = true
-    useRmod             true;       // Edward's modification
-    useSmod             true;      // strain rate instead of vorticity for Stilda
+mixture // air at room temperature (293 K)
+{
+    specie
+    {
+        molWeight   28.9;
+    }
+    thermodynamics
+    {
+        Cp          1005;
+        Hf          0;
+    }
+    transport
+    {
+        mu          7.7319e-05;
+        Pr          0.71;
+    }
 }
 
 // ************************************************************************* //
