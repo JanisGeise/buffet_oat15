@@ -64,12 +64,12 @@ def load_force_coeffs(load_path, usecols=[0, 1, 4], names=["t", "cx", "cy"]) -> 
     return coeffs
 
 
-def compute_fft(data: np.ndarray, dt: Union[float, int]) -> Tuple[np.ndarray, np.ndarray]:
-    _f, _a = welch(data, 1/dt, nperseg=len(data), nfft=len(data), window="boxcar")
+def compute_fft(data: np.ndarray, dt: Union[float, int], nfft: Union[int, None] = None) -> Tuple[np.ndarray, np.ndarray]:
+    _f, _a = welch(data, 1/dt, nperseg=len(data), nfft=nfft if nfft is not None else len(data), window="boxcar")
     return _f, _a
 
 
-def interpolate_uniform(t: np.ndarray, data: np.ndarray, dt: float=1e-6):
+def interpolate_uniform(t: np.ndarray, data: np.ndarray, dt: Union[float, int]=1e-6):
     # get start and end time
     t_start, t_end = t[0], t[-1]
 

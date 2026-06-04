@@ -1,6 +1,8 @@
 """
 create an animation of the flow field along with the course of cl
 """
+from typing import Union
+
 import torch as pt
 import matplotlib.pyplot as plt
 
@@ -10,17 +12,18 @@ from os.path import join, exists
 from matplotlib.patches import Polygon
 from flowtorch.data import FOAMDataloader, mask_box
 from matplotlib.animation import FuncAnimation, FFMpegWriter
+from torchgen import yaml_utils
 
 from utils import load_force_coeffs
 
-def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma", dims = None, y_max = -0.0375,
-                 n_dims : int = 2) -> None:
+def prepare_data(load_path: str, bounds : list, save_path, case: str, field_name: str = "Ma", dims = None, y_max = -0.0375,
+                 n_dims : int = 2, t_start: Union[float, int] = 0.6) -> None:
     if dims is None:
         dims = [0, 2]
 
     # prepare the forces
     forces = load_force_coeffs(load_path)
-    pt.save(forces[["t", "cy"]], join(save_dir, "forces.pt"))
+    pt.save(forces[["t", "cy"]], join(save_dir, f"forces_{case}.pt"))
     del forces
 
     # load the snapshots of the volume data
@@ -38,53 +41,78 @@ def prepare_data(load_path: str, bounds : list, save_path, field_name: str = "Ma
     # check if we have multiple cells in spanwise direction
     if n_dims == 2:
         _coord = loader.vertices[:, dims]
-        _idx = pt.ones(_coord.shape[0],).bool()
+
+        # for 2D we don't need _idx, but use here so we can load the fields independently of n_dims
+        _idx = pt.ones(_coord[mask].shape[0],).bool()
     else:
         # if so, extract a slice from the middle of the domain
         _idx = pt.isclose(_coord[:, 1], pt.tensor(y_max)/2)
         _coord = _coord[_idx, :][:, dims]
 
     # take all available write times except zero
-    _write_times = loader.write_times[1:]
+    _write_times = [t for t in loader.write_times if float(t) >= t_start]
 
-    _data = pt.zeros((_coord.shape[0], len(_write_times)))
+    # allocate a tensor for the flow fields
+    if n_dims == 2:
+        _data = pt.zeros((_coord[mask].shape[0], len(_write_times)))
+    else:
+        _data = pt.zeros((_coord.shape[0], len(_write_times)))
 
     # load the data
     for i, t in enumerate(_write_times):
         _data[:, i] = pt.masked_select(loader.load_snapshot(field_name, t), mask)[_idx]
 
     # save everything
-    pt.save({field_name: _data, "write_times": _write_times, "xz": _coord}, join(save_path, f"{field_name}_fields.pt"))
+    pt.save({field_name: _data, "write_times": _write_times, "xz": _coord},
+            join(save_path, f"{field_name}_fields_{case}.pt"))
 
 
 if __name__ == '__main__':
     # load and save paths
+    """
+    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation",
+                    "URANS_2D_Ma0.73_Re3e6_pitching_volume_data")
+    save_dir = join("..", "run", "plots", "URANS_pitching", "URANS_blockMesh", "synchronization_analysis_3.5deg",
+                    "animations")
+    case = r"A1.75_f20"
+    #"""
+
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
-    save_dir = join("..", "run", "plots", "DDES_validation")
-    case = r"DDES_SA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
+    save_dir = join("..", "run", "plots", "DDES_validation", "animations")
+    case = r"DDES_SALSA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
 
     # settings
-    prepare = False
-    y_max = -0.25
-    n_dims = 3
+    prepare = True
     bounds = [[-0.25, -1, -0.25], [5, 1, 2]]
+
+    # 2D URANS
+    # n_dims = 2
+    # y_max = -0.0375
+    # t_start = 2
+
+    # 3D DDES
+    y_max = -0.25
+    n_dims = 3          # it is assumed that the y-coord. is the spanwise direction
+    t_start = 0.15
 
     # flow conditions
     chord = 1
     u_inf = 242.16629
+
+    # currently only scalar fields are supported
     field_name = "Ma"
 
     # create plot directory
     if not exists(save_dir):
         makedirs(save_dir)
 
-    # load and prepare daa once
+    # load and prepare data once
     if prepare:
-        prepare_data(join(load_dir, case), bounds, save_dir, y_max=y_max, n_dims=n_dims)
+        prepare_data(join(load_dir, case), bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
         exit()
     else:
-        forces = pt.load(join(save_dir, "forces.pt"), weights_only=False)
-        data = pt.load(join(save_dir, f"{field_name}_fields.pt"), weights_only=False)
+        forces = pt.load(join(save_dir, f"forces_{case}.pt"), weights_only=False)
+        data = pt.load(join(save_dir, f"{field_name}_fields_{case}.pt"), weights_only=False)
         write_times = list(map(float, data["write_times"]))
         field = data[field_name]
         xz = data["xz"]
@@ -95,6 +123,9 @@ if __name__ == '__main__':
 
     # use latex fonts
     plt.rcParams.update({"text.usetex": True, "figure.dpi": 360})
+
+    # set the fps, make sure to not set it to zero if we haven't enough snapshots
+    fps = int(len(write_times) / 10) if int(len(write_times) / 10) > 0 else 1
 
     # animate flow field only
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -134,8 +165,8 @@ if __name__ == '__main__':
     fig.tight_layout()
 
     ani = FuncAnimation(fig, animate, frames=field.shape[1], blit=False, repeat=True)
-    writer = FFMpegWriter(fps=int(len(write_times) / 10))
-    ani.save(join(save_dir, f"flow_field_animation_{field_name}.mp4"), writer=writer)
+    writer = FFMpegWriter(fps=fps)
+    ani.save(join(save_dir, f"flow_field_animation_{field_name}_{case}.mp4"), writer=writer)
     plt.close(fig)
 
     #  ----------------------------- animate flow field with cl together -------------------------------------
@@ -163,7 +194,9 @@ if __name__ == '__main__':
 
     # now plot the cl -> smaller portion than Ma field
     idx_0 = forces["t"][forces["t"] == write_times[0]].index.values[0]
-    yLim = (0.8, 1)
+
+    # increase the y-limits a little bit more than min./max. of cl in this time span to make it look nicer
+    EPS = 0.05
 
     ax[1].plot(forces["t"][idx_0:] * u_inf / chord, forces["cy"][idx_0:])
     ax[1].scatter(forces["t"][idx_0] * u_inf/chord, forces["cy"][idx_0], marker="o", color="red", zorder=10)
@@ -171,7 +204,7 @@ if __name__ == '__main__':
     ax[1].set_xlim(write_times[0] * u_inf/chord, write_times[-1] * u_inf/chord)
     ax[1].tick_params(axis="x", which="minor", bottom=False)
     ax[1].minorticks_on()
-    ax[1].set_ylim(yLim)
+    ax[1].set_ylim(forces["cy"][idx_0:].min() - EPS, forces["cy"][idx_0:].max() + EPS)
     ax[1].set_xlabel(r"$\tau$")
     ax[1].set_ylabel(r"$c_l$")
     fig.tight_layout()
@@ -199,7 +232,7 @@ if __name__ == '__main__':
         ax[1].scatter(forces["t"][idx] * u_inf / chord, forces["cy"][idx], color="red", zorder=10)
         ax[1].axvline(forces["t"][idx] * u_inf / chord, color="red", ls="--", zorder=10)
         ax[1].set_xlim(write_times[0] * u_inf / chord, write_times[-1] * u_inf / chord)
-        ax[1].set_ylim(yLim)
+        ax[1].set_ylim(forces["cy"][idx_0:].min() - EPS, forces["cy"][idx_0:].max() + EPS)
         ax[1].set_xlabel(r"$\tau$")
         ax[1].set_ylabel(r"$c_l$")
         ax[1].minorticks_on()
@@ -208,5 +241,6 @@ if __name__ == '__main__':
 
     # create animation
     ani = FuncAnimation(fig, animate, frames=field.shape[1], blit=False, repeat=True)
-    writer = FFMpegWriter(fps=int(len(write_times) / 10))
-    ani.save(join(save_dir, f"flow_field_cl_animation_{field_name}.mp4"), writer=writer)
+    writer = FFMpegWriter(fps=fps)
+    writer = FFMpegWriter(fps=1)
+    ani.save(join(save_dir, f"flow_field_cl_animation_{field_name}_{case}.mp4"), writer=writer)
