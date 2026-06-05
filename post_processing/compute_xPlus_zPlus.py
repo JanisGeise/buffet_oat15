@@ -88,8 +88,8 @@ def plot_data(vertices_ss: pt.Tensor, vertices_ps: pt.Tensor, data_ss: pt.Tensor
 if __name__ == "__main__":
     # load and save paths
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
-    save_dir = join("..", "run", "plots", "DDES_validation")
-    case = r"DDES_SA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
+    save_dir = join("..", "run", "plots", "DDES_validation", "SALSA")
+    case = r"DDES_SALSA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
 
     # flow properties
     mu = 7.7319e-05

@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      turbulenceProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+simulationType  LES;
+
+LES
+{
+    LESModel            SpalartAllmarasSALSADDES;
+    turbulence          on;
+    printCoeffs         on;
+
+    delta           DeltaOmegaTilde;
+    DeltaOmegaTildeCoeffs
+    {}
+
+    SpalartAllmarasSALSADDESCoeffs
+    {
+        shielding     ZDES2020;
+        usefP2        true;
+        useSigma      false;
+
+        // SALSA settings
+        rhoInf            0.957837;     // required for useRmod = true
+        useRmod           true;
+        useSmod           true;
+    }
+}
+
+// ************************************************************************* //

@@ -50,6 +50,8 @@ maxCo           0.95;
 
 maxDeltaT       1e-6;
 
+libs			("libSASALSACompressibleTurbulenceModel.so");
+
 alpha           3.5;            // angle of attack
 Uinlet          242.16629;      // free stream velocity
 rho             0.957837;      // free stream density

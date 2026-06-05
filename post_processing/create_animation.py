@@ -58,7 +58,8 @@ def prepare_data(load_path: str, bounds : list, save_path, case: str, field_name
     else:
         _data = pt.zeros((_coord.shape[0], len(_write_times)))
 
-    # load the data
+    # load the data, loop over times due to memory constraints for the DDES case
+    print(f"Loading snapshots for field {field_name}. Found {len(_write_times)} snapshots.")
     for i, t in enumerate(_write_times):
         _data[:, i] = pt.masked_select(loader.load_snapshot(field_name, t), mask)[_idx]
 
@@ -125,7 +126,7 @@ if __name__ == '__main__':
     plt.rcParams.update({"text.usetex": True, "figure.dpi": 360})
 
     # set the fps, make sure to not set it to zero if we haven't enough snapshots
-    fps = int(len(write_times) / 10) if int(len(write_times) / 10) > 0 else 1
+    fps = int(len(write_times) / 10) if len(write_times) >= 150 else 15
 
     # animate flow field only
     fig, ax = plt.subplots(figsize=(6, 3))
@@ -242,5 +243,4 @@ if __name__ == '__main__':
     # create animation
     ani = FuncAnimation(fig, animate, frames=field.shape[1], blit=False, repeat=True)
     writer = FFMpegWriter(fps=fps)
-    writer = FFMpegWriter(fps=1)
     ani.save(join(save_dir, f"flow_field_cl_animation_{field_name}_{case}.mp4"), writer=writer)
