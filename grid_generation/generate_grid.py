@@ -5,8 +5,8 @@ from block_mesh_generator import BlockMeshGenerator
 
 
 if __name__ == "__main__":
-    # name of the file containing the coordinates, it is assumed that there is one line for the header
-    file_name = "oat15.dat"
+    # name of the file containing the coordinates, headers will be removed automatically
+    file_name = "ONERA-OAT15A_coordinates.dat"
 
     # path to where the blockMeshDict should be written to
     # write_path = r"../OAT15_simulations/DDES_SA_validation_Re3e6_Ma0.73/system"

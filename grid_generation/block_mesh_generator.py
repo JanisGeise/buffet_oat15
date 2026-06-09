@@ -1,6 +1,7 @@
 """
 class for generating a blockMesh based on 2D coordinates of an airfoil
 """
+import logging
 import torch as pt
 import numpy as np
 
@@ -9,6 +10,10 @@ from copy import deepcopy
 from pandas import read_csv
 from typing import Union, Tuple, List
 from scipy.interpolate import interp1d
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
+                    force=True)
 
 HEADER = r"""/*--------------------------------*- C++ -*----------------------------------*\
 | =========                 |                                                 |
@@ -233,12 +238,16 @@ class BlockMeshGenerator:
         :return: None
         :rtype: None
         """
-        _coordinates = pt.from_numpy(read_csv(join(self._load_path, self._file_name), sep=r"\s+", skiprows=1,
+        _coordinates = pt.from_numpy(read_csv(join(self._load_path, self._file_name), sep=r"\s+", comment="#",
                                               header=None, names=["x", "y"]).to_numpy())
 
         # reverse coordinates in case the ordering is the other way round
         if self._reverse:
-            _coordinates = reversed(_coordinates)
+            # check if we really have to reverse the coordinates, if not don't reverse
+            if _coordinates[-1, 1] < _coordinates[0, 1]:
+                logger.warning("Coordinates already in the correct order. Skipping reversal of coordinates.")
+            else:
+                _coordinates = reversed(_coordinates)
         self._chord = _coordinates[:, 0].max().item() - _coordinates[:, 0].min().item()
 
         # split into SS and PS
