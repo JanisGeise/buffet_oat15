@@ -10,7 +10,7 @@ from os.path import join
 from scipy.signal import welch
 from typing import Union, Tuple
 from scipy.interpolate import interp1d
-from flowtorch.data import FOAMDataloader
+from flowtorch.data import FOAMDataloader, CSVDataloader
 
 
 def load_ratio_rans_les(load_path, usecols=[0, 1, 2], names=["t", "les", "rans"]) -> pd.DataFrame:
@@ -181,6 +181,68 @@ def load_residuals(load_path, name: str = "0") -> pd.DataFrame:
     _solverInfo.reset_index(inplace=True, drop=True)
 
     return _solverInfo
+
+def load_surface_data(load_path: str, field: str, xy: bool,
+                      t_start: Union[float, int]) -> Tuple[pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor]:
+    # instantiate loader
+    loader = CSVDataloader.from_foam_surface(join(load_path, "postProcessing", "surface"), f"{field}_airfoil.raw")
+
+    # new mesh is oriented in the x-y-plane or in the x-y-plane depending on the setup
+    if xy:
+        xz = loader.vertices[:, [0, 1]]
+    else:
+        xz = loader.vertices[:, [0, 2]]
+
+    # take all times starting at t = XX to compute the mean cp if we have URANS. If the last time < t_start just use the last few
+    write_times = [t for t in loader.write_times if float(t) >= t_start]
+    if not write_times:
+        # TODO: for DDES use tstart = 0.0.15s ( = -100)
+        write_times = loader.write_times[-100:]
+
+    # for URANS we want to avg. therefore we have to adjust write_times
+    cp_temp = loader.load_snapshot(field, write_times).unsqueeze(-1)
+
+    # average in spanwise direction
+    xz_unique, inverse = pt.unique(xz, dim=0, return_inverse=True)
+    cp_avg = pt.zeros((xz_unique.shape[0], *cp_temp.shape[1:]))
+
+    for j in range(xz_unique.shape[0]):
+        cp_avg[j] = cp_temp[inverse == j].mean(dim=0)
+
+    x_temp = xz_unique[:, 0]
+    z_temp = xz_unique[:, 1]
+    cp_temp = cp_avg
+
+    # compute the camber line for dividing into PS / SS
+    x_camber_temp, camber_line = compute_camber_line(x_temp, c=1, xf_max=0.5, f_max=0.05)
+
+    # get all coordinates for suction and pressure side
+    is_suction = z_temp > camber_line
+    is_pressure = ~is_suction
+
+    cp_suction = cp_temp[is_suction]
+    cp_pressure = cp_temp[is_pressure]
+
+    x_suction = x_temp[is_suction]
+    z_suction = z_temp[is_suction]
+    x_pressure = x_temp[is_pressure]
+    z_pressure = z_temp[is_pressure]
+
+    idx_suction = pt.argsort(x_suction, descending=True)
+    x_suction = x_suction[idx_suction]
+    z_suction = z_suction[idx_suction]
+    cp_suction = cp_suction[idx_suction]
+
+    idx_pressure = pt.argsort(x_pressure)
+    x_pressure = x_pressure[idx_pressure]
+    z_pressure = z_pressure[idx_pressure]
+    cp_pressure = cp_pressure[idx_pressure]
+
+    x_sorted = pt.cat([x_suction, x_pressure])
+    z_sorted = pt.cat([z_suction, z_pressure])
+    cp_sorted = pt.cat([cp_suction, cp_pressure])
+
+    return x_sorted, z_sorted, cp_sorted, camber_line, x_camber_temp
 
 
 if __name__ == "__main__":
