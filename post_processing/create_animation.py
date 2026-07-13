@@ -123,11 +123,18 @@ if __name__ == '__main__':
 
     # load and prepare data once
     if prepare:
-        prepare_data(join(load_dir, case), bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
+        if case is not None:
+            prepare_data(join(load_dir, case), bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
+        else:
+            prepare_data(load_dir, bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
         exit()
     else:
-        forces = pt.load(join(save_dir, f"forces_{case}.pt"), weights_only=False)
-        data = pt.load(join(save_dir, f"{field_name}_fields_{case}.pt"), weights_only=False)
+        if case is not None:
+            forces = pt.load(join(save_dir, f"forces_{case}.pt"), weights_only=False)
+            data = pt.load(join(save_dir, f"{field_name}_fields_{case}.pt"), weights_only=False)
+        else:
+            forces = pt.load(join(save_dir, f"forces.pt"), weights_only=False)
+            data = pt.load(join(save_dir, f"{field_name}_fields.pt"), weights_only=False)
         write_times = list(map(float, data["write_times"]))
         field = data[field_name]
         xz = data["xz"]

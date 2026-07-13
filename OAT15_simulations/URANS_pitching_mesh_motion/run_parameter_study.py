@@ -1,6 +1,8 @@
 """
 script to create directories and modify the inlet boundary condition in order to execute the parameter study
 """
+import math
+
 import os
 import shutil
 import logging
@@ -25,51 +27,6 @@ def createCopies(source: str, destination: str) -> None:
     """
     shutil.copytree(source, destination, dirs_exist_ok=True)
 
-def write_Allrun(target: str) -> None:
-    """
-    write an Allrun file to execute the flow solver only
-
-    :param target: path to the target directory
-    :type target: str
-    :return: None
-    """
-    _msg = r"""#!/bin/bash
-
-cd "${0%/*}" || exit                                # Run from this directory
-. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions      # Tutorial run functions
-#------------------------------------------------------------------------------
-
-# execute flow solver
-runParallel "$(getApplication)"
-
-# compute the cell centers and volumes
-runParallel postProcess -func "writeCellCentres" -constant -time none
-mv log.postProcess log.postProcess.writeCellCentres
-runParallel postProcess -func "writeCellVolumes" -constant -time none
-mv log.postProcess log.postProcess.writeCellVolumes
-"""
-
-    with open(join(target, "Allrun"), "w") as f_out:
-        f_out.write(_msg)
-
-def cleanCopy(destination: str) -> None:
-    """
-    clean up the copy of the base simulation
-
-    :param destination: path to the target directory
-    :type destination: str
-    :return: None
-    """
-    # overwrite the Allrun file
-    write_Allrun(destination)
-
-    # clean-up
-    _zero_files = glob(join(destination, "processor*", "**", "*_0"), recursive=True)
-
-    # remove the log file in order to continue the execution of the simulation
-    os.remove(join(destination, "log.rhoPimpleFoam"))
-    [os.remove(file) for file in _zero_files]
-
 def modify_controlDict(target: str, t_end: Union[float, int] = 1.5) -> None:
     """
     change the end time of the simulation in the controlDict
@@ -90,24 +47,6 @@ def modify_controlDict(target: str, t_end: Union[float, int] = 1.5) -> None:
     with open(join(target, "system", "controlDict"), "w") as f_out:
         f_out.writelines(lines)
 
-def relace_all_inlet_conditions(target: str, new_a: Union[int, float], new_f: Union[int, float],
-                                finish_time: Union[int, float] = 0.06) -> None:
-    """
-    loop over all processor directories inside a simulation folder and replace the pitching amplitude and frequency of
-    the inlet boundary condition in the U files
-
-    :param target: path to the target directory
-    :type target: str
-    :param new_a: new pitching amplitude
-    :type new_a: Union[int, float]
-    :param new_f: new pitching frequency
-    :type new_f: Union[int, float]
-    :param finish_time: end time of the executed base simulation, defaults to t = 0.06s
-    :return: None
-    """
-    for processor in glob(join(target, "processor*", str(finish_time), "U")):
-        replace_frequency_and_amplitude(processor, new_a, new_f)
-
 def replace_frequency_and_amplitude(file_path: str, a_mod: Union[int, float], f_mod: Union[int, float]) -> None:
     """
     replace the pitching amplitude and frequency of the inlet boundary condition in the U file of a single processor
@@ -121,17 +60,21 @@ def replace_frequency_and_amplitude(file_path: str, a_mod: Union[int, float], f_
     :type f_mod: Union[int, float]
     :return: None
     """
-    with open(join(file_path), "rb") as f_in:
+    with open(join(file_path, "0.orig", "pointDisplacement"), "r") as f_in:
         lines = f_in.readlines()
 
-    # replace the expression
-    idx, val = [(i, l) for i, l in enumerate(lines) if b"valueExpr" in l][0]
-    lines[idx] = lines[idx].replace(b"0*sin(2*pi()*0*time()", f"{a_mod}*sin(2*pi()*{f_mod}*time()".encode())
+    # we have to case f in rad/s
+    f_mod *= (2*math.pi)
 
-    with open(join(file_path), "wb") as f_out:
+    # replace the expression
+    idx, val = [(i, l) for i, l in enumerate(lines) if "            omega       0.0;" in l][0]
+    lines[idx] = lines[idx].replace("            omega       0.0;", f"            omega       {f_mod};")
+    lines[idx+1] = lines[idx+1].replace("            amplitude   (0 0 0);", f"            amplitude   (0 {a_mod} 0);")
+
+    with open(join(file_path, "0.orig", "pointDisplacement"), "w") as f_out:
         f_out.writelines(lines)
 
-def write_jobscript(target: str, amp: Union[int, float], freq: Union[int, float], wall_time: str = "96:00:00",
+def write_jobscript(target: str, amp: Union[int, float], freq: Union[int, float], wall_time: str = "48:00:00",
                     n_cpu: int = 10) -> None:
     """
     write a jobscript for a simulation setup when executed on an HPC system
@@ -213,19 +156,15 @@ if __name__ == "__main__":
     # path to the base case
     BASE_DIR = "base"
     SLURM = True
-    tend = 2
+    tend = 0.5
 
     # which amplitudes to run, here 0.25, 0.35 and 0.50 times the mean cl (without pitching)
-    amplitudes = [0.875, 1.225, 1.75]
+    amplitudes = [0.875]
 
     # which frequencies to run, here: from 0.75 f_buffet to 1.25 f_buffet in 0.5 Hz spacing
-    frequencies = list(range(10, 21))
-    frequencies += [i + 0.5 for i in range(10, 22)]
+    frequencies = list(range(3, 30))
+    # frequencies += [i + 0.5 for i in range(10, 30)]
     frequencies = sorted(frequencies)
-
-    # check if we executed the base case, if not exit
-    if not os.path.exists(join(BASE_DIR, "log.rhoPimpleFoam")):
-        raise FileNotFoundError(f"Base simulation '{BASE_DIR}' must be executed before running the parameter study.")
 
     # loop over all amplitudes and frequencies and set up the simulations to run
     all_dirs = []
@@ -242,16 +181,11 @@ if __name__ == "__main__":
                 # copy the base directory
                 createCopies(BASE_DIR, _cwd)
 
-                # clean it up and overwrite the Allrun file
-                cleanCopy(_cwd)
-
                 # update the endTime of the simulation
                 modify_controlDict(_cwd, t_end=tend)
 
-                # loop over all processor directories and insert the correct amplitude and frequency in the inlet
-                # boundary condition for the velocity field of the last write time
-                last_write_time = get_last_write_time(BASE_DIR)
-                relace_all_inlet_conditions(_cwd, a, f, finish_time=last_write_time)
+                # update the mesh motion
+                replace_frequency_and_amplitude(_cwd, a, f)
 
                 # write a jobscript if we are on an HPC system
                 if SLURM:

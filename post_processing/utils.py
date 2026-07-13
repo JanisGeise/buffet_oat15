@@ -183,7 +183,7 @@ def load_residuals(load_path, name: str = "0") -> pd.DataFrame:
     return _solverInfo
 
 def load_surface_data(load_path: str, field: str, xy: bool,
-                      t_start: Union[float, int]) -> Tuple[pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor]:
+                      t_start: Union[float, int]) -> Tuple[pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor]:
     # instantiate loader
     loader = CSVDataloader.from_foam_surface(join(load_path, "postProcessing", "surface"), f"{field}_airfoil.raw")
 
@@ -242,7 +242,7 @@ def load_surface_data(load_path: str, field: str, xy: bool,
     z_sorted = pt.cat([z_suction, z_pressure])
     cp_sorted = pt.cat([cp_suction, cp_pressure])
 
-    return x_sorted, z_sorted, cp_sorted, camber_line, x_camber_temp
+    return x_sorted, z_sorted, cp_sorted, camber_line, x_camber_temp, len(x_suction)
 
 
 if __name__ == "__main__":

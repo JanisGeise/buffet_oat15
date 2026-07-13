@@ -1,0 +1,80 @@
+#!/bin/bash
+cd "${0%/*}" || exit
+. "${WM_PROJECT_DIR:?}"/bin/tools/RunFunctions
+#------------------------------------------------------------------------------
+
+set -e
+
+# Override these when calling the script, e.g.
+#   MESH_MOTION_END_TIME=0.1 MESH_MOTION_DELTA_T=1e-4 ./AllrunMeshMotion
+: "${MESH_MOTION_START_TIME:=0}"
+: "${MESH_MOTION_END_TIME:=1.0}"
+: "${MESH_MOTION_DELTA_T:=1e-4}"
+: "${MESH_MOTION_WRITE_INTERVAL:=100}"
+
+tmpDir="$(mktemp -d)"
+
+cleanup()
+{
+    if [ -f "$tmpDir/controlDict" ]; then
+        cp "$tmpDir/controlDict" system/controlDict
+    fi
+
+    if [ -f "$tmpDir/fvOptions" ]; then
+        cp "$tmpDir/fvOptions" system/fvOptions
+    fi
+
+    if [ -f "$tmpDir/fvSolution" ]; then
+        cp "$tmpDir/fvSolution" system/fvSolution
+    fi
+
+    rm -rf "$tmpDir"
+}
+trap cleanup EXIT
+
+cp system/controlDict "$tmpDir/controlDict"
+cp system/fvOptions "$tmpDir/fvOptions"
+cp system/fvSolution "$tmpDir/fvSolution"
+
+foamDictionary system/controlDict -entry startFrom -set startTime
+foamDictionary system/controlDict -entry startTime -set "$MESH_MOTION_START_TIME"
+foamDictionary system/controlDict -entry stopAt -set endTime
+foamDictionary system/controlDict -entry endTime -set "$MESH_MOTION_END_TIME"
+foamDictionary system/controlDict -entry deltaT -set "$MESH_MOTION_DELTA_T"
+foamDictionary system/controlDict -entry adjustTimeStep -set no
+foamDictionary system/controlDict -entry writeControl -set timeStep
+foamDictionary system/controlDict -entry writeInterval -set "$MESH_MOTION_WRITE_INTERVAL"
+foamDictionary system/fvSolution -entry PIMPLE.nOuterCorrectors -set 1
+
+cat > system/fvOptions <<'EOF'
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     |                                                 |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvOptions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+
+// ************************************************************************* //
+EOF
+
+cp -r 0.orig/. 0
+touch post.foam
+
+runApplication blockMesh
+runApplication decomposePar -force
+runParallel flattenMesh
+runParallel checkMesh -allGeometry -allTopology
+runParallel renumberMesh -overwrite
+runParallel moveDynamicMesh -no-libs -noFunctionObjects
+
+#------------------------------------------------------------------------------
