@@ -34,16 +34,17 @@ def prepare_data(load_path: str, bounds : list, save_path, case: str, field_name
     # apply the mask
     mask = mask_box(_coord, lower=bounds[0], upper=bounds[1])
 
-    # mask the vertices
-    _coord = pt.stack([pt.masked_select(_coord[:, d], mask) for d in range(3)], dim=1)
-
     # check if we have multiple cells in spanwise direction
     if n_dims == 2:
-        _coord = loader.vertices[:, dims]
-
         # for 2D we don't need _idx, but use here so we can load the fields independently of n_dims
         _idx = pt.ones(_coord[mask].shape[0],).bool()
+
+        # mask the vertices
+        _coord = pt.stack([pt.masked_select(_coord[:, d], mask) for d in range(3)], dim=1)[:, dims]
     else:
+        # mask the vertices
+        _coord = pt.stack([pt.masked_select(_coord[:, d], mask) for d in range(3)], dim=1)
+
         # if so, extract a slice from the middle of the domain
         _idx = pt.isclose(_coord[:, 1], pt.tensor(y_max)/2)
         _coord = _coord[_idx, :][:, dims]
@@ -52,10 +53,7 @@ def prepare_data(load_path: str, bounds : list, save_path, case: str, field_name
     _write_times = [t for t in loader.write_times if float(t) >= t_start]
 
     # allocate a tensor for the flow fields, for the animation we don't care about DP
-    if n_dims == 2:
-        _data = pt.zeros((_coord[mask].shape[0], len(_write_times))).to(pt.float32)
-    else:
-        _data = pt.zeros((_coord.shape[0], len(_write_times))).to(pt.float32)
+    _data = pt.zeros((_coord.shape[0], len(_write_times))).to(pt.float32)
 
     # load the data, loop over times due to memory constraints for the DDES case
     print(f"Loading snapshots for field {field_name}. Found {len(_write_times)} snapshots.")
@@ -64,7 +62,7 @@ def prepare_data(load_path: str, bounds : list, save_path, case: str, field_name
         _data[:, i] = pt.masked_select(loader.load_snapshot(field_name, t), mask)[_idx].to(pt.float32)
 
     # save everything
-    print("Saving data.")
+    print("\nSaving data.")
     pt.save({field_name: _data.to(pt.float32), "write_times": _write_times, "xz": _coord.to(pt.float32)},
             join(save_path, f"{field_name}_fields_{case}.pt"))
 
@@ -77,7 +75,7 @@ def compute_aoa(time_steps, aoa0: Union[int, float], amplitude: Union[int, float
 
 if __name__ == '__main__':
     # load and save paths
-    # """
+    """
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation",
                     "URANS_2D_Ma0.73_Re3e6_pitching_volume_data")
     save_dir = join("..", "run", "plots", "URANS_pitching", "URANS_blockMesh", "synchronization_analysis_3.5deg",
@@ -85,16 +83,22 @@ if __name__ == '__main__':
     case = r"A1.75_f6"
     #"""
 
+    # for animating sqrtGamma field
+    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "URANS_2D_Ma0.73_Re3e6")
+    save_dir = join("..", "run", "plots", "URANS_validation", "URANS_blockMesh", "SALSA", "revised_new_mesh",
+                    "comparsion_viscosity_SA_vs_SALSA")
+    case = r"URANS_SALSA_alpha3.5deg_blockMesh_useRmod_useSmod_newMesh"
+
     # load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
     # save_dir = join("..", "run", "plots", "DDES_validation", "animations")
     # case = r"DDES_SALSA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
 
     # settings
-    prepare = False
+    prepare = True
     bounds = [[-0.25, -1, -0.25], [5, 1, 2]]
 
     # if we have pitching, add an arrow with the current AoA
-    pitching = True
+    pitching = False
     aoa0 = 3.5
     frequency = 6
     amplitude = 1.75
@@ -103,7 +107,7 @@ if __name__ == '__main__':
     # 2D URANS
     n_dims = 2
     y_max = -0.0375
-    t_start = 2
+    t_start = 0.6
 
     # 3D DDES
     # y_max = -0.25
@@ -115,7 +119,8 @@ if __name__ == '__main__':
     u_inf = 242.16629
 
     # currently only scalar fields are supported
-    field_name = "Ma"
+    field_name = "sqrtGamma"
+    # field_name = r"\sqrt{\Gamma}}"
 
     # create plot directory
     if not exists(save_dir):
@@ -124,9 +129,11 @@ if __name__ == '__main__':
     # load and prepare data once
     if prepare:
         if case is not None:
-            prepare_data(join(load_dir, case), bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
+            prepare_data(join(load_dir, case), bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start,
+                         field_name=field_name)
         else:
-            prepare_data(load_dir, bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start)
+            prepare_data(load_dir, bounds, save_dir, case, y_max=y_max, n_dims=n_dims, t_start=t_start,
+                         field_name=field_name)
         exit()
     else:
         if case is not None:
