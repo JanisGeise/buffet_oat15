@@ -1,0 +1,67 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2412                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+// here on z-direction (not normal to wall)
+sample_lines
+{
+        type             sets;
+        libs             (sampling);
+        log              false;
+        executeControl   writeTime;
+        executeInterval  1;
+        writeControl     writeTime;
+        writeInterval    1;
+        setFormat        csv;
+        fields          (p U UMean pMean UPrime2Mean pPrime2Mean rho Ma gradU);
+        sets
+        {
+            xc_028
+            {
+                type face;
+                axis z;
+                start (0.28 0 0.0641);
+                end (0.28 0 0.15);
+            }
+
+            xc_045
+            {
+                type face;
+                axis z;
+                start (0.45 0 0.0677);
+                end (0.45 0 0.15);
+            }
+
+            xc_06
+            {
+                type face;
+                axis z;
+                start (0.6 0 0.063);
+                end (0.6 0 0.15);
+            }
+
+            xc_075
+            {
+                type face;
+                axis z;
+                start (0.75 0 0.047);
+                end (0.75 0 0.15);
+            }
+
+            // compare to line sample normal to the surface for the most extreme case, difference is neglectable
+            /*
+            xc_075_normal
+            {
+                type face;
+                axis distance;
+
+                start (0.75 0 0.047);
+                end   (0.7652 0 0.1489);
+            }
+            */
+        }
+}
