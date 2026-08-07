@@ -238,11 +238,16 @@ def load_surface_data(load_path: str, field: str, xy: bool,
     z_pressure = z_pressure[idx_pressure]
     cp_pressure = cp_pressure[idx_pressure]
 
+    # print(x_suction.size(), x_pressure.size())
+    # compute spacing between points
+    # dx_ss = pt.tensor([x_suction[i] - x_suction[i+1] for i in range(x_suction.size(0)-1)])
+    # print(dx_ss.min(), dx_ss.max(), dx_ss.mean(), dx_ss.std())
+
     x_sorted = pt.cat([x_suction, x_pressure])
     z_sorted = pt.cat([z_suction, z_pressure])
     cp_sorted = pt.cat([cp_suction, cp_pressure])
 
-    return x_sorted, z_sorted, cp_sorted, camber_line, x_camber_temp, len(x_suction)
+    return x_sorted, z_sorted, cp_sorted, camber_line, x_camber_temp, len(x_suction), write_times
 
 
 if __name__ == "__main__":

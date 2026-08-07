@@ -17,7 +17,8 @@ sample_lines
         writeControl     writeTime;
         writeInterval    1;
         setFormat        csv;
-        fields          (p U UMean pMean UPrime2Mean pPrime2Mean rho Ma gradU);
+        fields          (p U UMean pMean UPrime2Mean pPrime2Mean rho Ma gradU sqrtGamma nuTilda nut);
+        timeStart        0.6;
         sets
         {
             xc_028
@@ -50,6 +51,31 @@ sample_lines
                 axis z;
                 start (0.75 0 0.047);
                 end (0.75 0 0.15);
+            }
+
+            // shift by the approx. mismatch in shock position compared to the exp. data
+            xc_05
+            {
+                type face;
+                axis z;
+                start (0.5 0 0.067);
+                end (0.5 0 0.15);
+            }
+
+            xc_065
+            {
+                type face;
+                axis z;
+                start (0.65 0 0.059);
+                end (0.65 0 0.15);
+            }
+
+            xc_08
+            {
+                type face;
+                axis z;
+                start (0.8 0 0.039);
+                end (0.8 0 0.15);
             }
 
             // compare to line sample normal to the surface for the most extreme case, difference is neglectable
