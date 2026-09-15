@@ -64,8 +64,9 @@ def load_force_coeffs(load_path, usecols=[0, 1, 4], names=["t", "cx", "cy"]) -> 
     return coeffs
 
 
-def compute_fft(data: np.ndarray, dt: Union[float, int], nfft: Union[int, None] = None) -> Tuple[np.ndarray, np.ndarray]:
-    _f, _a = welch(data, 1/dt, nperseg=len(data), nfft=nfft if nfft is not None else len(data), window="boxcar")
+def compute_fft(data: np.ndarray, dt: Union[float, int], nfft: Union[int, None] = None, zero_padding: int = 1) -> Tuple[np.ndarray, np.ndarray]:
+    # add some zero-padding
+    _f, _a = welch(data, 1/dt, nperseg=len(data), nfft=nfft if nfft is not None else zero_padding * len(data), window="boxcar")
     return _f, _a
 
 
@@ -183,7 +184,7 @@ def load_residuals(load_path, name: str = "0") -> pd.DataFrame:
     return _solverInfo
 
 def load_surface_data(load_path: str, field: str, xy: bool,
-                      t_start: Union[float, int]) -> Tuple[pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor]:
+                      t_start: Union[float, int], t_end: Union[float, int] = 1) -> Tuple[pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor, pt.Tensor]:
     # instantiate loader
     loader = CSVDataloader.from_foam_surface(join(load_path, "postProcessing", "surface"), f"{field}_airfoil.raw")
 
@@ -194,13 +195,14 @@ def load_surface_data(load_path: str, field: str, xy: bool,
         xz = loader.vertices[:, [0, 2]]
 
     # take all times starting at t = XX to compute the mean cp if we have URANS. If the last time < t_start just use the last few
-    write_times = [t for t in loader.write_times if float(t) >= t_start]
+    write_times = [t for t in loader.write_times if t_start <= float(t) <= t_end]
     if not write_times:
         # TODO: for DDES use tstart = 0.0.15s ( = -100)
         write_times = loader.write_times[-100:]
 
+    # TODO: exception handling tau_w -> only load tau_wx for now
     # for URANS we want to avg. therefore we have to adjust write_times
-    cp_temp = loader.load_snapshot(field, write_times).unsqueeze(-1)
+    cp_temp = loader.load_snapshot(f"{field}_x" if field == "wallShearStress" else field, write_times).unsqueeze(-1)
 
     # average in spanwise direction
     xz_unique, inverse = pt.unique(xz, dim=0, return_inverse=True)

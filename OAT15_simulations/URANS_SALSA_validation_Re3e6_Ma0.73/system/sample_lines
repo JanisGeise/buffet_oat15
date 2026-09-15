@@ -17,7 +17,7 @@ sample_lines
         writeControl     writeTime;
         writeInterval    1;
         setFormat        csv;
-        fields          (p U UMean pMean UPrime2Mean pPrime2Mean rho Ma gradU sqrtGamma nuTilda nut);
+        fields          (p U UMean pMean UPrime2Mean pPrime2Mean rho Ma gradU sqrtGamma nuTilda nut wallShearStress);
         timeStart        0.6;
         sets
         {
@@ -41,7 +41,7 @@ sample_lines
             {
                 type face;
                 axis z;
-                start (0.6 0 0.063);
+                start (0.6 0 0.0625);
                 end (0.6 0 0.15);
             }
 

@@ -1,5 +1,5 @@
 """
-create an animation of the flow field along with the course of cl
+create an animation of the flow field, optionally along with the course of cl
 """
 from typing import Union
 
@@ -75,39 +75,41 @@ def compute_aoa(time_steps, aoa0: Union[int, float], amplitude: Union[int, float
 
 if __name__ == '__main__':
     # load and save paths
-    """
+    # for pitching: since mesh motion of the airfoil is very small, it's not visible in the animation
+    #               -> therefore we can treat the mesh as stationary
     load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation",
-                    "URANS_2D_Ma0.73_Re3e6_pitching_volume_data")
-    save_dir = join("..", "run", "plots", "URANS_pitching", "URANS_blockMesh", "synchronization_analysis_3.5deg",
+                    "URANS_2D_Ma0.73_Re3e6_pitching_mesh_motion_volume_data")
+    save_dir = join("..", "run", "plots", "URANS_pitching", "URANS_blockMesh", "synchronization_analysis_mesh_motion",
                     "animations")
-    case = r"A1.75_f6"
+    case = r"A0.35_f4"
+
+    # default case without pitching
+    """
+    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "URANS_2D_Ma0.73_Re3e6")
+    save_dir = join("..", "run", "plots", "URANS_validation", "URANS_blockMesh", "SALSA", "animations")
+    case = r"URANS_SALSA_alpha3.5deg_blockMesh_useRmod_useSmod_newMesh"
     #"""
 
-    # for animating sqrtGamma field
-    load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "URANS_2D_Ma0.73_Re3e6")
-    save_dir = join("..", "run", "plots", "URANS_validation", "URANS_blockMesh", "SALSA", "revised_new_mesh",
-                    "comparsion_viscosity_SA_vs_SALSA")
-    case = r"URANS_SALSA_alpha3.5deg_blockMesh_useRmod_useSmod_newMesh"
-
+    # DDES
     # load_dir = join("/media", "janis", "Elements", "Janis", "2D_buffet_simulation", "DDES_3D_Ma0.73_Re3e6")
     # save_dir = join("..", "run", "plots", "DDES_validation", "animations")
     # case = r"DDES_SALSA_Re3e6_Ma0.73_alpha3.5deg_y65_ymax0.25"
 
     # settings
-    prepare = True
+    prepare = False
     bounds = [[-0.25, -1, -0.25], [5, 1, 2]]
 
-    # if we have pitching, add an arrow with the current AoA
-    pitching = False
+    # if we have pitching where we vary the inlet AoA, add an arrow with the current AoA. For mesh motion not needed
+    pitching = True
     aoa0 = 3.5
-    frequency = 6
-    amplitude = 1.75
-    t_pitching_start = 0.06
+    frequency = int(case.split("f")[-1])
+    amplitude = 0.875
+    t_pitching_start = 0.0
 
     # 2D URANS
     n_dims = 2
     y_max = -0.0375
-    t_start = 0.6
+    t_start = 2.4
 
     # 3D DDES
     # y_max = -0.25
@@ -119,8 +121,7 @@ if __name__ == '__main__':
     u_inf = 242.16629
 
     # currently only scalar fields are supported
-    field_name = "sqrtGamma"
-    # field_name = r"\sqrt{\Gamma}}"
+    field_name = "Ma"
 
     # create plot directory
     if not exists(save_dir):
@@ -136,6 +137,7 @@ if __name__ == '__main__':
                          field_name=field_name)
         exit()
     else:
+        print("Loading data.")
         if case is not None:
             forces = pt.load(join(save_dir, f"forces_{case}.pt"), weights_only=False)
             data = pt.load(join(save_dir, f"{field_name}_fields_{case}.pt"), weights_only=False)
@@ -151,9 +153,9 @@ if __name__ == '__main__':
         oat = read_csv(join("..", "grid_generation", "oat15.dat"), sep=r"\s+", skiprows=1, header=None, names=["x", "y"])
 
     # if we have pitching, compute the AoA.
-    # note: this is the AoA @ inlet, but in video we don't show the inlet -> there is a delay
+    # note: this is the AoA @ inlet, but in video we don't show the inlet -> there is a delay (except for mesh motion)
     if pitching:
-        idx_start = pt.where(abs(pt.tensor(forces.t.values) - t_pitching_start) < 1e-8)[0][0].item()
+        idx_start = pt.where(abs(pt.tensor(forces.t.values) - t_pitching_start) < 1e-7)[0][0].item()
         aoa = compute_aoa(pt.from_numpy(forces.t.values[idx_start:]), aoa0, amplitude, frequency)
 
     # use latex fonts
@@ -161,6 +163,9 @@ if __name__ == '__main__':
 
     # set the fps, make sure to not set it to zero if we haven't enough snapshots
     fps = int(len(write_times) / 10) if len(write_times) >= 150 else 15
+    cmap = "seismic"
+    vmin, vmax= 0, 1.4
+    levels = pt.linspace(vmin, vmax, 500)
 
     # add the arrow
     if pitching:
@@ -169,22 +174,21 @@ if __name__ == '__main__':
 
     # animate flow field only
     fig, ax = plt.subplots(figsize=(6, 3))
-    cf = ax.tricontourf(xz[:, 0]/chord, xz[:, 1]/chord, field[:, 0], cmap="coolwarm", levels=500, extend="both",
-                        vmin=0, vmax=1.4)
+    cf = ax.tricontourf(xz[:, 0]/chord, xz[:, 1]/chord, field[:, 0], cmap=cmap, levels=levels, extend="both",
+                        vmin=vmin, vmax=vmax)
 
     # colorbar settings
     cbar = fig.colorbar(cf, ax=ax, shrink=0.6)
-    cbar.set_ticks([0.2, 0.4, 0.6, 0.8, 1, 1.2])
     cbar.set_label("$~$" + field_name + "$~[-]$")
-
+    cbar.set_ticks(pt.linspace(vmin, vmax, 15)[::2])
 
     # animate
     def animate(i):
         print("\r", f"Creating frame {i + 1:03d} / {len(write_times)}", end="")
         # update flow field
         ax.clear()
-        cf = ax.tricontourf(xz[:, 0] / chord, xz[:, 1] / chord, field[:, i], cmap="coolwarm", levels=500,
-                               extend="both", vmin=0, vmax=1.4)
+        cf = ax.tricontourf(xz[:, 0] / chord, xz[:, 1] / chord, field[:, i], cmap=cmap, levels=levels,
+                               extend="both", vmin=vmin, vmax=vmax)
         ax.add_patch(Polygon(oat / chord, facecolor="white"))
         ax.set_xlim(-0.2 / chord, 2.5 / chord)
         ax.set_ylim(-0.2 / chord, 1 / chord)
@@ -228,13 +232,13 @@ if __name__ == '__main__':
     ax = [fig.add_subplot(gs[0, :]), fig.add_subplot(gs[1, 0])]
 
     # flow field plot
-    cf = ax[0].tricontourf(xz[:, 0]/chord, xz[:, 1]/chord, field[:, 0], cmap="coolwarm", levels=500, extend="both",
-                        vmin=0, vmax=1.4)
+    cf = ax[0].tricontourf(xz[:, 0]/chord, xz[:, 1]/chord, field[:, 0], cmap=cmap, levels=levels, extend="both",
+                        vmin=vmin, vmax=vmax)
 
     # colorbar settings
     cbar = fig.colorbar(cf, ax=ax[0], shrink=0.6)
-    cbar.set_ticks([0.2, 0.4, 0.6, 0.8, 1, 1.2])
     cbar.set_label("$~$" + field_name + "$~[-]$")
+    cbar.set_ticks(pt.linspace(vmin, vmax, 15)[::2])
 
     ax[0].set_xlim(-0.2/chord, 2.5/chord)
     ax[0].set_ylim(-0.2/chord, 1/chord)
@@ -259,7 +263,7 @@ if __name__ == '__main__':
     ax[1].minorticks_on()
     ax[1].set_ylim(forces["cy"][idx_0:].min() - EPS, forces["cy"][idx_0:].max() + EPS)
     ax[1].set_xlabel(r"$\tau$")
-    ax[1].set_ylabel(r"$c_l$")
+    ax[1].set_ylabel(r"$c_L$")
     fig.tight_layout()
     fig.subplots_adjust(hspace=0.25)
 
@@ -269,8 +273,8 @@ if __name__ == '__main__':
         # update flow field
         ax[0].clear()
         ax[1].clear()
-        cf = ax[0].tricontourf(xz[:, 0] / chord, xz[:, 1] / chord, field[:, i], cmap="coolwarm", levels=500,
-                               extend="both", vmin=0, vmax=1.4)
+        cf = ax[0].tricontourf(xz[:, 0] / chord, xz[:, 1] / chord, field[:, i], cmap=cmap, levels=levels,
+                               extend="both", vmin=vmin, vmax=vmax)
         ax[0].add_patch(Polygon(oat / chord, facecolor="white"))
         ax[0].set_xlim(-0.2 / chord, 2.5 / chord)
         ax[0].set_ylim(-0.2 / chord, 1 / chord)
@@ -287,7 +291,7 @@ if __name__ == '__main__':
         ax[1].set_xlim(write_times[0] * u_inf / chord, write_times[-1] * u_inf / chord)
         ax[1].set_ylim(forces["cy"][idx_0:].min() - EPS, forces["cy"][idx_0:].max() + EPS)
         ax[1].set_xlabel(r"$\tau$")
-        ax[1].set_ylabel(r"$c_l$")
+        ax[1].set_ylabel(r"$c_L$")
         ax[1].minorticks_on()
 
         # add arrow for AoA
