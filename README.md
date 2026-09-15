@@ -38,6 +38,20 @@ as `csv` files in the directory `validation_exp_data`. The corresponding numeric
 - $\alpha = 2.5^\circ, 3.5^\circ$
 - $t_\mathrm{end} = 1$ $s~(\approx 242$  $\mathrm{CTU})$
 
+## Pitching via a variable inlet AoA (deprecated)
+The directory `OAT15_simulations/URANS_pitching` contains a setup in which the pitching motion is prescribed via a 
+periodically varying inflow angle at the inlet, $\alpha(t) = \alpha_0 + A\sin(\omega t - \varphi)$ (see the setup of 
+the validation case above). The resulting oscillations are damped before reaching the airfoil, such that this setup 
+is deprecated. A guide on setting up and executing the parameter study is provided in 
+`OAT15_simulations/URANS_pitching/Readme.md`.
+
+## Pitching via mesh motion
+The directory `OAT15_simulations/URANS_pitching_mesh_motion` contains a setup in which the pitching motion is 
+prescribed via mesh motion of the airfoil using a `displacementLaplacian` solver. This setup is validated, but may 
+become unstable for high pitching amplitudes. Analogous to the setup above, a base case is executed first and the 
+parameter study is set up and executed via the `run_parameter_study.py` script. The case setup and execution via the 
+`AllrunMeshMotion` script are described in `OAT15_simulations/URANS_pitching_mesh_motion/base/Readme.md`.
+
 ## Visualization of the results
 
 - the directory `post_pocessing` contains the scripts for post-processing and visualization of the results

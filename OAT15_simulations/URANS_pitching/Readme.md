@@ -12,6 +12,10 @@ $\alpha = \alpha_0 = const.$ is executed. Then the `run_parameter_study.py` scri
 case and running each of these simulations with a different $f$ and $A$. The following sections will provide some guidance
 on how to execute the parameter study.
 
+**Note:** this setup is deprecated. Since the pitching motion is prescribed at the inlet, the oscillations are damped
+before reaching the airfoil. Use the setup in `URANS_pitching_mesh_motion`, where the motion is prescribed via mesh 
+motion, instead.
+
 ## Setting up the base case
 The base case is by default set up with a mean inflow angle of $\alpha_0 = 3.5^\circ$.
 To change the inflow angle or inflow velocity, **both** entries for `Uinlet` and `alpha0` (at the top and inside the `inlet_outlet`
@@ -31,7 +35,7 @@ The script `run_parameter_study` contains three modifiable entries
 - amplitudes: list containing the pitching amplitudes to run (in degree)
 - frequencies: list containing the pitching frequencies to run (in Hz)
 
-To execute the script, just run `python3 runparameter_study.py`. The script will then loop over each amplitude-frequency
+To execute the script, just run `python3 run_parameter_study.py`. The script will then loop over each amplitude-frequency
 combination, copy the base case, modify the boundary condition and make some other adjustments.
 
 Note that the `SBATCH` settings have to be adjusted when executing on an HPC system (function `write_jobscript`).
