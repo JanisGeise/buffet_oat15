@@ -5,4 +5,4 @@ jupyterlab
 numpy
 scipy
 torch
-git+https://github.com/FlowModelingControl/flowtorch.git@aweiner
+flowtorch-fluid
