@@ -23,7 +23,9 @@ to the `blockMeshGenerator` in case the coordinates are sorted as *TE -> LE via 
 3. execute the simulation via the `Allrun` script
 
 **Note:** To achieve buffet, the *SALSA* turbulence model is required. Since this model is not directly available in 
-`OpenFOAM` as of now, it has to be compiled from [here](https://github.com/JanisGeise/OF_SA_SALSA).
+`OpenFOAM` as of now, it has to be compiled from [here](https://github.com/JanisGeise/OF_SA_SALSA). In contrast to the original paper by Rung et al., we use the 
+free-stream **static** density (`useRmod`) instead of the free-stream stagnation density. This results in a slightly lower 
+amplitude for the shock motion, but the overall effect is neglect able.
 
 ## Validation
 In order to validate the simulation setup, the experimental data of J*acquin et al.* is used (see references).

@@ -98,9 +98,9 @@ def relace_all_inlet_conditions(target: str, new_a: Union[int, float], new_f: Un
 
     :param target: path to the target directory
     :type target: str
-    :param new_a: new pitching amplitude
+    :param new_a: new pitching amplitude in [deg]
     :type new_a: Union[int, float]
-    :param new_f: new pitching frequency
+    :param new_f: new pitching frequency in [deg]
     :type new_f: Union[int, float]
     :param finish_time: end time of the executed base simulation, defaults to t = 0.06s
     :return: None

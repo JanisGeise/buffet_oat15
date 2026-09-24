@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)-8s %(message)s', datefmt='%Y-%m-%d %H:%M:%S',
                     force=True)
 
-def createCopies(source: str, destination: str) -> None:
+def create_copies(source: str, destination: str) -> None:
     """
     create copies of the base case
 
@@ -54,9 +54,9 @@ def replace_frequency_and_amplitude(file_path: str, a_mod: Union[int, float], f_
 
     :param file_path: path to the processor directory
     :type file_path: str
-    :param a_mod: new pitching amplitude
+    :param a_mod: new pitching amplitude in [deg], the amplitude is here mean -> peak
     :type a_mod: Union[int, float]
-    :param f_mod: new pitching frequency
+    :param f_mod: new pitching frequency in [deg]
     :type f_mod: Union[int, float]
     :return: None
     """
@@ -179,7 +179,7 @@ if __name__ == "__main__":
                 all_dirs.append(_cwd)
 
                 # copy the base directory
-                createCopies(BASE_DIR, _cwd)
+                create_copies(BASE_DIR, _cwd)
 
                 # update the endTime of the simulation
                 modify_controlDict(_cwd, t_end=tend)
